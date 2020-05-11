@@ -22,6 +22,7 @@
 #ifndef AST_H_
 #define AST_H_
 
+#include <array>
 #include <iostream>
 #include <memory>
 #include <set>
@@ -32,6 +33,9 @@ namespace yas6502
 {
     class SymbolTable;
     class Pass1;
+    class Pass2;
+
+    using Image = std::array<int, 65536>;
 
     namespace ast
     {
@@ -47,18 +51,27 @@ namespace yas6502
             Node();
             virtual ~Node();
 
+            void setLine(int line);
             void setLoc(int loc);
+            void setNextLoc(int loc);
             void setLabel(const std::string &label);
             void setComment(const std::string &comment);
 
-            std::string str();
+            int line() const;
+            int loc() const;
+            virtual int length() const;
+
+            std::string str(const Image &image);
 
             virtual void pass1(Pass1 &pass1);
+            virtual void pass2(Pass2 &pass2);
 
         protected:
             virtual std::string toString() = 0;
 
+            int line_;
             int loc_;
+            int nextLoc_;  // the location of the following instruction
             std::string label_;
             std::string comment_;
         };
@@ -85,6 +98,7 @@ namespace yas6502
             DataNode(DataSize size, std::vector<ExpressionPtr> &&data);
 
             virtual void pass1(Pass1 &pass1) override;
+            virtual void pass2(Pass2 &pass2) override;
             virtual std::string toString() override;
 
         private:
@@ -98,6 +112,7 @@ namespace yas6502
             InstructionNode(std::string &opcode, AddressPtr address);
 
             virtual void pass1(Pass1 &pass1) override;
+            virtual void pass2(Pass2 &pass2) override;
             virtual std::string toString() override;
 
         private:
@@ -112,13 +127,16 @@ namespace yas6502
         class OrgNode : public Node
         {
         public:
-            OrgNode(ExpressionPtr loc);
+            OrgNode(ExpressionPtr locExpr);
 
             virtual void pass1(Pass1 &pass1) override;
+            virtual void pass2(Pass2 &pass2) override;
+            virtual int length() const;
             virtual std::string toString() override;
 
         private:
-            ExpressionPtr loc_;
+            ExpressionPtr locExpr_;
+            int computedLoc_;
         };
 
         class SetNode : public Node
@@ -127,6 +145,8 @@ namespace yas6502
             SetNode(const std::string &symbol, ExpressionPtr value);
 
             virtual void pass1(Pass1 &pass1) override;
+            virtual void pass2(Pass2 &pass2) override;
+            virtual int length() const;
             virtual std::string toString() override;
 
         private:

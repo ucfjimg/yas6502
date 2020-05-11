@@ -19,63 +19,78 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **/
-#include "symtab.h"
+#include "pass.h"
 
-#include <algorithm>
-#include <cctype>
-#include <sstream>
+#include "utility.h"
+
 #include <stdexcept>
+#include <string>
 
-using std::map;
+using std::make_unique;
 using std::runtime_error;
 using std::string;
-
-using ss = std::stringstream;
+using std::unique_ptr;
 
 namespace yas6502
 {
     /**
-     * Symbol constructor
+     * Constructor
      */
-    Symbol::Symbol()
-        : defined(false)
-        , value(1)
+    Pass::Pass(SymbolTable &symtab, const OpcodeMap &opcodes)
+        : symtab_(symtab)
+        , opcodes_(opcodes)
+        , loc_(0)
     {
     }
 
     /**
-     * Look up a symbol. Always returns a value, which may not yet be defined.
+     * Destructor
      */
-    Symbol SymbolTable::lookup(const string& name)
+    Pass::~Pass()
     {
-        string uname = name;
-        std::transform(uname.begin(), uname.end(), uname.begin(), toupper);
-
-        return symbols_[uname];
     }
-    
+
     /**
-     * Set the value of a symbol.
+     * Return the current location counter.
      */
-    void SymbolTable::setValue(const std::string &name, int value)
+    int Pass::loc() const
     {
-        string uname = name;
-        std::transform(uname.begin(), uname.end(), uname.begin(), toupper);
+        return loc_;
+    }
 
-        Symbol oldValue = symbols_[name];
-        if (oldValue.defined && oldValue.value != value) {
-            ss err{};
-
-            err
-                << "Cannot redefine symbol `" 
-                << name
-                << "'.";
-
-            throw runtime_error{ err.str() };
+    /**
+     * Sets the current location counter.
+     */
+    void Pass::setLoc(int loc)
+    {
+        if (loc > 0xFFFF) {
+            throw runtime_error{ "Location counter cannot exceed $FFFF." };
+        } else if (loc < 0) {
+            throw runtime_error{ "Location counter cannot be negative." };
         }
 
-        Symbol &sym = symbols_[name];
-        sym.defined = true;
-        sym.value = value;
+        loc_ = loc;
+    }
+
+    /**
+     * Look up an opcode in the opcode map. Case insensitive.
+     * Returns nullptr if there is no such opcode.
+     */
+    unique_ptr<Opcode> Pass::findOpcode(const string &op)
+    {
+        auto it = opcodes_.find(toUpper(op));
+        if (it == opcodes_.end()) {
+            return nullptr;
+        }
+
+        return make_unique<Opcode>( it->second ); 
+    }
+
+    /**
+     * Return the symbol table.
+     */
+    SymbolTable &Pass::symtab()
+    {
+        return symtab_;
     }
 }

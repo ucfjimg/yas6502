@@ -22,6 +22,7 @@
 
 #include "ast.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 
@@ -39,7 +40,8 @@ namespace yas6502
          * Constructor
          */
         Node::Node()
-            : loc_(0)
+            : line_(0)
+            , loc_(0)
         {
         }
 
@@ -51,12 +53,28 @@ namespace yas6502
         }
 
         /**
+         * Set the line number where the line was parsed.
+         */
+        void Node::setLine(int line)
+        {
+            line_ = line;
+        }
+
+        /**
          * Set the location counter at the start of this
          * line.
          */
         void Node::setLoc(int loc)
         {
             loc_ = loc;
+        }
+
+        /**
+         * Set the location counter as of the node emitting its data.
+         */
+        void Node::setNextLoc(int loc)
+        {
+            nextLoc_ = loc;
         }
 
         /**
@@ -76,32 +94,73 @@ namespace yas6502
         }
 
         /**
+         * Return the source file line containing this node.
+         */
+        int Node::line() const
+        {
+            return line_;
+        }
+
+        /**
+         * Return the location counter associated with this node.
+         */
+        int Node::loc() const
+        {
+            return loc_;
+        }
+
+        /**
+         * Return the number of bytes emitted into the assembly image
+         * for this node.
+         */
+        int Node::length() const
+        {
+            return nextLoc_ - loc_;
+        }
+
+        /**
          * Convert this line to a string. This is the public 
          * interface that handles the fields every node has, and
          * toString() is overridden by each subclass to convert
          * their data.
          */
-        string Node::str()
+        string Node::str(const Image &image)
         {
-           ss line{};
+            ss line{};
 
-           line
-               << std::setw(4) << std::hex << std::setfill('0') << std::uppercase << loc_
-               << std::setfill(' ')
-               << "  ";
+            line
+                << std::setw(5) << line_ << " "
+                << std::setw(4) << std::hex << std::setfill('0') << std::uppercase << loc_
+                << "  "
+                << std::setw(4) << std::hex << std::setfill('0') << std::uppercase << nextLoc_
+                << "  ";
 
-           if (!label_.empty()) {
-               line << std::setw(9) << std::left << (label_ + ":");
-           } else {
-               line << std::setw(9) << " ";
-           }
+            const int MAX_BYTES = 5;
+            int bytes = std::min(MAX_BYTES, length());
+
+            int i = 0;
+            for (; i < bytes; i++) {
+                line << std::setw(2) << std::setfill('0') << std::hex << (int)image[loc_ + i] << " "; 
+            }
+
+            for (; i < MAX_BYTES; i++) {
+                line << "   ";
+            }
+
+            line << std::setfill(' ');
+
+            if (!label_.empty()) {
+                line << std::setw(9) << std::left << (label_ + ":");
+            } else {
+                line << std::setw(9) << " ";
+            }
            
-           line 
-               << "  "
-               << std::setw(20)
-               << std::left
-               << toString()
-               << comment_;
+            line 
+                << "  "
+                << std::setw(20)
+                << std::left
+                << toString()
+                << comment_;
            
             return line.str();
         }
@@ -168,9 +227,19 @@ namespace yas6502
         /**
          * Construct an ORG node, which sets the location counter.
          */
-        OrgNode::OrgNode(ExpressionPtr loc)
-            : loc_(std::move(loc))
+        OrgNode::OrgNode(ExpressionPtr locExpr)
+            : locExpr_(std::move(locExpr))
+            , computedLoc_(0)
         {
+        }
+
+        /**
+         * Override length; the org node changes the location counter
+         * but emits no data.
+         */
+        int OrgNode::length() const
+        {
+            return 0;
         }
 
         /**
@@ -180,7 +249,7 @@ namespace yas6502
         {
             ss line{};
 
-            line << "ORG " << loc_->str();
+            line << "ORG " << locExpr_->str();
 
             return line.str(); 
         }
@@ -192,6 +261,14 @@ namespace yas6502
             : symbol_(symbol)
             , value_(std::move(value))
         {
+        }
+
+        /**
+         * Override length; the set node emits no data.
+         */
+        int SetNode::length() const
+        {
+            return 0;
         }
 
         /**
@@ -379,7 +456,7 @@ namespace yas6502
         {
             ss line{};
 
-            line << '$' << std::setfill('0') << std::setw(4) << value_;
+            line << '$' << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << value_;
             return line.str();
         }
     }

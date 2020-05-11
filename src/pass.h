@@ -19,17 +19,35 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **/
-#ifndef UTILITY_H_
-#define UTILITY_H_
+#ifndef PASS_H_
+#define PASS_H_
 
-#include <set>
-#include <string>
+#include "opcodes.h"
+
+#include <memory>
+#include <vector>
 
 namespace yas6502
 {
-    extern std::string concatSet(const std::set<std::string> &s, const std::string &sep);    
-    extern std::string toUpper(const std::string &s);
-}
+    class SymbolTable;
 
+    class Pass
+    {
+    public:
+        Pass(SymbolTable &symtab, const OpcodeMap &opcodes);
+        virtual ~Pass();
+
+        SymbolTable &symtab();
+        std::unique_ptr<Opcode> findOpcode(const std::string &op);
+
+        int loc() const;
+        void setLoc(int loc);
+
+    protected:
+        SymbolTable &symtab_;
+        const OpcodeMap &opcodes_;
+        int loc_;
+    };
+}
 #endif
 

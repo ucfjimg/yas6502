@@ -19,16 +19,44 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **/
-#ifndef UTILITY_H_
-#define UTILITY_H_
+#ifndef PASS2_H_
+#define PASS2_H_
 
-#include <set>
-#include <string>
+#include "ast.h"
+#include "pass.h"
+#include "opcodes.h"
+
+#include <array>
+#include <memory>
+#include <vector>
 
 namespace yas6502
 {
-    extern std::string concatSet(const std::set<std::string> &s, const std::string &sep);    
-    extern std::string toUpper(const std::string &s);
+    class SymbolTable;
+
+    class Pass2 : public Pass
+    {
+    public:
+        Pass2(SymbolTable &symtab, const OpcodeMap &opcodes);
+        void pass2(std::vector<std::unique_ptr<ast::Node>> &ast);
+        
+        const std::array<int, 65536> &image() const;
+
+        // Interface for use by AST nodes assembling themselves
+        void emit(unsigned byte);
+        int evalCheckDefined(ast::Expression &expr);
+        void checkByte(int value);
+
+
+
+    private:
+        // the address space of a 16-bit processor is so small that
+        // it makes sense to just keep an image of all of memory
+        // rather than try to build individual OMF records as we
+        // would if the assembler was self-hosted.
+        //
+        std::array<int, 65536> image_;
+    };
 }
 
 #endif

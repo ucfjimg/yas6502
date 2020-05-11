@@ -23,6 +23,7 @@
 
 #include "opcodes.h"
 #include "pass1.h"
+#include "pass2.h"
 #include "symtab.h"
 
 #include <cstring>
@@ -112,8 +113,11 @@ namespace yas6502
         Pass1 pass1{ symtab, opcodes_ };
         pass1.pass1(program_);
 
+        Pass2 pass2{ symtab, opcodes_ };
+        pass2.pass2(program_);
+
         for (const auto &np : program_) {
-            cout << np->str() << endl;
+            cout << np->str(pass2.image()) << endl;
         }
     }
 

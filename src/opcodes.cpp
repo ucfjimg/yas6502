@@ -372,7 +372,6 @@ namespace yas6502
             }
         }
 
-
         return opcodes;
     }
 }

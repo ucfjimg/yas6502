@@ -15,7 +15,9 @@ add_executable(yas6502
     src/ast.cpp
     src/expr.cpp
     src/opcodes.cpp
+    src/pass.cpp
     src/pass1.cpp
+    src/pass2.cpp
     src/symtab.cpp
     src/utility.cpp
 

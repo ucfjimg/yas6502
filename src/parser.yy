@@ -54,6 +54,7 @@ using std::endl;
 
 using std::make_unique;
 using std::vector;
+
 namespace ast = yas6502::ast;
 using ast::Expression;
 using ast::SymbolExpression;
@@ -132,6 +133,7 @@ stmt-list:
 
 line: label stmt comment NEWLINE { 
     $$ = std::move( $2 ); 
+    $$->setLine(@1.begin.line);
     $$->setLabel( $1 );
     $$->setComment( $3 );
 }

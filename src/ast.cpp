@@ -35,11 +35,28 @@ namespace yas6502
 {
     namespace ast
     {
+        /** 
+         * Constructor
+         */
+        Node::Node()
+            : loc_(0)
+        {
+        }
+
         /**
          * Destructor
          */
         Node::~Node()
         {
+        }
+
+        /**
+         * Set the location counter at the start of this
+         * line.
+         */
+        void Node::setLoc(int loc)
+        {
+            loc_ = loc;
         }
 
         /**
@@ -67,6 +84,11 @@ namespace yas6502
         string Node::str()
         {
            ss line{};
+
+           line
+               << std::setw(4) << std::hex << std::setfill('0') << std::uppercase << loc_
+               << std::setfill(' ')
+               << "  ";
 
            if (!label_.empty()) {
                line << std::setw(9) << std::left << (label_ + ":");
@@ -127,6 +149,7 @@ namespace yas6502
         InstructionNode::InstructionNode(std::string &opcode, AddressPtr address)
             : opcode_(opcode)
             , address_(std::move(address))
+            , operandSize_(DataSize::Byte)
         {
         }
 
@@ -182,7 +205,7 @@ namespace yas6502
 
             return line.str(); 
         }
-        
+
         /**
          * Base class destructor
          */
@@ -241,6 +264,23 @@ namespace yas6502
             }
 
             return line.str();
+        }
+
+        /**
+         * Get the addressing mode
+         */
+        AddrMode Address::mode() const
+        {
+            return mode_;
+        }
+
+        /**
+         * Get the address expression. Can be nullptr for
+         * some modes.
+         */
+        Expression *Address::addressExpr() const
+        {
+            return address_.get();
         }
 
         namespace

@@ -22,11 +22,6 @@
 #include "opcodes.h"
 
 #include <cassert>
-#include <map>
-#include <string>
-
-using std::map;
-using std::string;
 
 namespace yas6502
 {
@@ -47,9 +42,9 @@ namespace yas6502
     {
     }
 
-    map<string, Opcode> makeOpcodeMap()
+    OpcodeMap makeOpcodeMap()
     {
-        map<string, Opcode> opcodes{};
+        OpcodeMap opcodes{};
 
         Opcode ADC{};
         ADC.immediate = 0x69;

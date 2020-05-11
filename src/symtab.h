@@ -19,50 +19,33 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **/
-#ifndef ASSEMBLER_H_
-#define ASSEMBLER_H_
+#ifndef SYMTAB_H_
+#define SYMTAB_H_
 
-#include "ast.h"
-#include "opcodes.h"
-
-#include <string>
 #include <map>
-#include <memory>
-#include <vector>
-
-#include "parser.tab.hpp"
+#include <string>
 
 namespace yas6502
 {
-    class Assembler 
+    struct Symbol
+    {
+        Symbol();
+
+        bool defined;
+        int value;
+    };
+
+    class SymbolTable
     {
     public:
-        Assembler();
-
-        void setTrace();
-        void assemble(const std::string &file);
-
-        void setProgram(std::vector<std::unique_ptr<ast::Node>> &&program);
-
-        yy::location &loc();
-        const yy::location &loc() const;
-
-        const Opcode *opcode(const std::string &op) const;
+        Symbol lookup(const std::string &name);
+        void setValue(const std::string &name, int value);
 
     private:
-        OpcodeMap opcodes_;
-
-        yy::location location_;
-        std::string file_;
-        bool trace_;
-
-        std::vector<std::unique_ptr<ast::Node>> program_;
+        std::map<std::string, Symbol> symbols_;
     };
 }
 
-# define YY_DECL yy::parser::symbol_type yylex(yas6502::Assembler &asmb)
-
-YY_DECL;
 
 #endif
 

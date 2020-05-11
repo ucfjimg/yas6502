@@ -22,6 +22,8 @@
 #include "assembler.h"
 
 #include "opcodes.h"
+#include "pass1.h"
+#include "symtab.h"
 
 #include <cstring>
 #include <iostream>
@@ -103,12 +105,16 @@ namespace yas6502
         parse.set_debug_level(trace_);
         parse();
 
-        for (const auto &line : program_) {
-            cout << line->str() << endl;
-        }
-
         fclose(yyin);
         yyin = nullptr;
+
+        SymbolTable symtab{};
+        Pass1 pass1{ symtab, opcodes_ };
+        pass1.pass1(program_);
+
+        for (const auto &np : program_) {
+            cout << np->str() << endl;
+        }
     }
 
     /**

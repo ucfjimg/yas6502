@@ -46,7 +46,9 @@ namespace yas6502
         Opcode();
     };
 
-    extern std::map<std::string, Opcode> makeOpcodeMap();
+    using OpcodeMap = std::map<std::string, Opcode>;
+
+    extern OpcodeMap makeOpcodeMap();
 };
 
 

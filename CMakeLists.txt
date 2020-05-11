@@ -13,8 +13,12 @@ add_executable(yas6502
 
     src/assembler.cpp
     src/ast.cpp
+    src/expr.cpp
     src/opcodes.cpp
-    
+    src/pass1.cpp
+    src/symtab.cpp
+    src/utility.cpp
+
     ${BISON_parser_OUTPUTS} 
     ${FLEX_scanner_OUTPUTS}
 )

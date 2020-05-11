@@ -1,0 +1,148 @@
+#include "ast.h"
+
+#include "symtab.h"
+
+#include <algorithm>
+#include <cassert>
+#include <stdexcept>
+
+using std::runtime_error;
+using std::set;
+using std::string;
+
+using yas6502::ast::BinaryOp;
+using yas6502::ast::ConstantExpression;
+using yas6502::ast::SymbolExpression;
+using yas6502::ast::ExprResult;
+using yas6502::ast::Operator;
+using yas6502::ast::UnaryOp;
+
+namespace yas6502
+{
+    /**
+     * Construct a defined exppression result
+     */
+    ExprResult::ExprResult(int value)
+        : value_(value)
+    {
+    }
+
+    /**
+     * Construct an undefined expression result
+     */
+    ExprResult::ExprResult(set<string> &&undefinedSymbols)
+        : value_(1)
+        , undefinedSymbols_(std::move(undefinedSymbols))
+    {
+    }
+    
+    /**
+     * An expression result is defined if it has no undefined symbols.
+     */
+    bool ExprResult::defined() const
+    {
+        return undefinedSymbols_.empty();
+    }
+
+    /**
+     * The value of evaluating an expression
+     */
+    int ExprResult::value() const
+    {
+        return value_;
+    }
+
+    /**
+     * The undefined symbols encountered while evaluating an expression
+     */
+    const set<string> &ExprResult::undefinedSymbols() const
+    {
+        return undefinedSymbols_;
+    }
+
+    /**
+     * Evaluate a unary operation
+     */
+    ExprResult UnaryOp::eval(SymbolTable &symtab)
+    {
+        ExprResult op = operand_->eval(symtab);
+        if (!op.defined()) {
+            return op;
+        }
+
+        switch (op_) {
+        case Operator::Neg:
+            op = ExprResult{ -op.value() };
+            break;
+        }
+
+        return op;
+    }
+
+    /**
+     * Evaluate a binary operation
+     */
+    ExprResult BinaryOp::eval(SymbolTable &symtab)
+    {
+        ExprResult left = left_->eval(symtab);
+        ExprResult right = right_->eval(symtab);
+        if (!left.defined() || !right.defined()) {
+            set<string> undefs{};
+
+            for (string undef : left.undefinedSymbols()) {
+                undefs.insert(undef);
+            }
+
+            for (string undef : right.undefinedSymbols()) {
+                undefs.insert(undef);
+            }
+            
+            return ExprResult{ std::move(undefs) };
+        }
+
+        switch (op_) {
+        case Operator::Add:
+            left = ExprResult{ left.value() + right.value() };
+            break;
+
+        case Operator::Sub:
+            left = ExprResult{ left.value() - right.value() };
+            break;
+
+        case Operator::Mul:
+            left = ExprResult{ left.value() * right.value() };
+            break;
+
+        case Operator::Div:
+            if (right.value() == 0) {
+                throw runtime_error{ "Divide by zero." };
+            }
+            left = ExprResult{ left.value() / right.value() };
+            break;
+        }
+
+        return left;
+    }
+
+    /**
+     * Evaluate a symbol expression
+     */
+    ExprResult SymbolExpression::eval(SymbolTable &symtab)
+    {
+        Symbol sym = symtab.lookup(symbol_);
+        if (!sym.defined) {
+            set<string> undefs{ symbol_ };
+            return ExprResult{ std::move(undefs) };
+        }
+            
+        return ExprResult{ sym.value };
+    }
+
+    /**
+     * Evaluate a constant expression
+     */
+    ExprResult ConstantExpression::eval(SymbolTable &symtab)
+    {
+        return ExprResult{ value_ };
+    }
+}

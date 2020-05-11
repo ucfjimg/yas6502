@@ -24,10 +24,15 @@
 
 #include <iostream>
 #include <memory>
+#include <set>
+#include <string>
 #include <vector>
 
 namespace yas6502
 {
+    class SymbolTable;
+    class Pass1;
+
     namespace ast
     {
         class Expression;
@@ -39,16 +44,21 @@ namespace yas6502
         class Node
         {
         public:
+            Node();
             virtual ~Node();
 
+            void setLoc(int loc);
             void setLabel(const std::string &label);
             void setComment(const std::string &comment);
 
             std::string str();
 
+            virtual void pass1(Pass1 &pass1);
+
         protected:
             virtual std::string toString() = 0;
 
+            int loc_;
             std::string label_;
             std::string comment_;
         };
@@ -74,6 +84,7 @@ namespace yas6502
         public:
             DataNode(DataSize size, std::vector<ExpressionPtr> &&data);
 
+            virtual void pass1(Pass1 &pass1) override;
             virtual std::string toString() override;
 
         private:
@@ -86,11 +97,16 @@ namespace yas6502
         public:
             InstructionNode(std::string &opcode, AddressPtr address);
 
+            virtual void pass1(Pass1 &pass1) override;
             virtual std::string toString() override;
 
         private:
             std::string opcode_;
             AddressPtr address_;
+
+            // Computed in pass 1
+            //
+            DataSize operandSize_;
         };
 
         class OrgNode : public Node
@@ -98,6 +114,7 @@ namespace yas6502
         public:
             OrgNode(ExpressionPtr loc);
 
+            virtual void pass1(Pass1 &pass1) override;
             virtual std::string toString() override;
 
         private:
@@ -109,6 +126,7 @@ namespace yas6502
         public:
             SetNode(const std::string &symbol, ExpressionPtr value);
 
+            virtual void pass1(Pass1 &pass1) override;
             virtual std::string toString() override;
 
         private:
@@ -163,12 +181,28 @@ namespace yas6502
             Neg,
         };
 
+        class ExprResult
+        {
+        public:
+            ExprResult(int value);
+            ExprResult(std::set<std::string> &&undefined);
+
+            bool defined() const;
+            int value() const;
+            const std::set<std::string> &undefinedSymbols() const;
+
+        private:
+            int value_;
+            std::set<std::string> undefinedSymbols_;
+        };
+
         class Expression
         {
         public:
             virtual ~Expression();
 
             virtual std::string str() = 0;
+            virtual ExprResult eval(SymbolTable &symtab) = 0;
         };
 
         class Address
@@ -177,6 +211,9 @@ namespace yas6502
             Address(AddrMode mode, ExpressionPtr address);
 
             std::string str();
+
+            AddrMode mode() const;
+            Expression *addressExpr() const;
 
         private:
             AddrMode mode_;
@@ -190,6 +227,7 @@ namespace yas6502
             UnaryOp(Operator op, ExpressionPtr operand);
 
             virtual std::string str() override;
+            virtual ExprResult eval(SymbolTable &symtab) override;
 
         private:
             Operator op_;
@@ -202,6 +240,7 @@ namespace yas6502
             BinaryOp(Operator op, ExpressionPtr left, ExpressionPtr right);
 
             virtual std::string str() override;
+            virtual ExprResult eval(SymbolTable &symtab) override;
 
         private:
             Operator op_;
@@ -215,6 +254,7 @@ namespace yas6502
             SymbolExpression(const std::string &symbol);
 
             virtual std::string str() override;
+            virtual ExprResult eval(SymbolTable &symtab) override;
 
         private:
             const std::string symbol_;
@@ -226,6 +266,7 @@ namespace yas6502
             ConstantExpression(int value);
 
             virtual std::string str() override;
+            virtual ExprResult eval(SymbolTable &symtab) override;
 
         private:
             int value_;

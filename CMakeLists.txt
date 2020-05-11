@@ -12,6 +12,7 @@ add_executable(yas6502
     src/main.cpp
 
     src/assembler.cpp
+    src/ast.cpp
     src/opcodes.cpp
     
     ${BISON_parser_OUTPUTS} 

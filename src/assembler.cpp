@@ -24,10 +24,16 @@
 #include "opcodes.h"
 
 #include <cstring>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
+using std::cout;
+using std::endl;
 using std::runtime_error;
+using std::string;
+using std::unique_ptr;
+using std::vector;
 
 using ss = std::stringstream;
 
@@ -36,23 +42,36 @@ extern int yy_flex_debug;
 
 namespace yas6502
 {
+    /**
+     * Constructor
+     */
     Assembler::Assembler()
         : trace_(false)
     {
         opcodes_ = makeOpcodeMap();
     }
 
+    /**
+     * Access to the location -- used by scanner.
+     */
     yy::location &Assembler::loc()
     {
         return location_;
     }
 
+    /**
+     * const version of location
+     */
     const yy::location &Assembler::loc() const
     {
         return location_;
     }
 
-    const Opcode *Assembler::opcode(const std::string &op) const
+    /**
+     * Return a pointer to an Opcode struct for the given mnemonic, or
+     * nullptr if there is no instruction with that name.
+     */
+    const Opcode *Assembler::opcode(const string &op) const
     {
         // TODO strupr
         auto it = opcodes_.find(op);
@@ -62,7 +81,10 @@ namespace yas6502
         return nullptr;    
     }
 
-    void Assembler::assemble(const std::string &filename)
+    /**
+     * Parse and assemble the given file.
+     */
+    void Assembler::assemble(const string &filename)
     {
         file_ = filename;
         location_.initialize(&file_);
@@ -81,7 +103,19 @@ namespace yas6502
         parse.set_debug_level(trace_);
         parse();
 
+        for (const auto &line : program_) {
+            cout << line->str() << endl;
+        }
+
         fclose(yyin);
         yyin = nullptr;
+    }
+
+    /**
+     * Called by the parser to set the program when parsing is done.
+     */
+    void Assembler::setProgram(vector<unique_ptr<ast::Node>> &&program)
+    {
+        program_ = std::move(program);
     }
 }

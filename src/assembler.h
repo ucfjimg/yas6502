@@ -22,10 +22,14 @@
 #ifndef ASSEMBLER_H_
 #define ASSEMBLER_H_
 
+#include "ast.h"
 #include "opcodes.h"
 
 #include <string>
 #include <map>
+#include <memory>
+#include <vector>
+
 #include "parser.tab.hpp"
 
 namespace yas6502
@@ -38,6 +42,8 @@ namespace yas6502
         void setTrace();
         void assemble(const std::string &file);
 
+        void setProgram(std::vector<std::unique_ptr<ast::Node>> &&program);
+
         yy::location &loc();
         const yy::location &loc() const;
 
@@ -49,6 +55,8 @@ namespace yas6502
         yy::location location_;
         std::string file_;
         bool trace_;
+
+        std::vector<std::unique_ptr<ast::Node>> program_;
     };
 }
 

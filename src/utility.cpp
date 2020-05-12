@@ -31,6 +31,15 @@ using std::transform;
 
 using ss = std::stringstream;
 
+namespace 
+{
+#ifdef WIN32
+    const char PATHSEP = '\\';
+#else
+    const char PATHSEP = '/';
+#endif
+}
+
 namespace yas6502
 {
     /**
@@ -60,5 +69,21 @@ namespace yas6502
         string upper = s;
         transform(upper.begin(), upper.end(), upper.begin(), ::toupper);
         return upper;
+    }
+
+    /**
+     * Replace the file extension in `fn' with `ext', or append the new extension 
+     * if there isn't one on `fn' already.
+     */
+    string replaceOrAppendExtension(const string &fn, const string &ext)
+    {
+        auto pathsep = fn.rfind(PATHSEP);        
+        auto dot = fn.rfind('.');
+
+        if (dot != string::npos && (pathsep == string::npos || pathsep < dot)) {
+            return fn.substr(0, dot+1) + ext;
+        }
+
+        return fn + '.' + ext;
     }
 }

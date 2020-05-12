@@ -29,6 +29,7 @@ namespace yas6502
 {
     extern std::string concatSet(const std::set<std::string> &s, const std::string &sep);    
     extern std::string toUpper(const std::string &s);
+    extern std::string replaceOrAppendExtension(const std::string &fn, const std::string &ext);
 }
 
 #endif

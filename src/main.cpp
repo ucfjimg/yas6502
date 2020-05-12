@@ -22,13 +22,25 @@
 #include "assembler.h"
 
 #include "except.h"
+#include "utility.h"
 
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 using std::cerr;
 using std::endl;
+using std::ofstream;
 using std::string;
+
+using ss = std::stringstream;
+
+namespace
+{
+    void showErrors(yas6502::Assembler &asmb);
+    void writeObjectFile(const std::string &fn, const yas6502::Image &image);
+}
 
 int main(int argc, char *argv[])
 {
@@ -39,30 +51,90 @@ int main(int argc, char *argv[])
     yas6502::Assembler asmb{};
 
     try {
-        asmb.assemble(string{ argv[1] });
+        string sourceFile{ argv[1] };
+        asmb.assemble(sourceFile);
         
         if (asmb.errors() || asmb.warnings()) {
-            for (yas6502::Message message : asmb.messages()) {
-                cerr
-                    << std::setw(5) << message.line() << ": "
-                    << (message.warning() ? "Warning" : "Error")
-                    << ": "
-                    << message.message()
-                    << endl;
-            }
-
-            cerr
-                << asmb.errors() << " error(s), "
-                << asmb.warnings() << " warning(s)."
-                << endl;
+            showErrors(asmb);
 
             if (asmb.errors()) {
                 return 1;
             }
         }
 
-
+        writeObjectFile(yas6502::replaceOrAppendExtension(sourceFile, "o"), asmb.image());        
     } catch (yas6502::Error &ex) {
         cerr << ex.message() << endl;
+    }
+}
+
+namespace 
+{
+    /**
+     * Print errors to stderr
+     */
+    void showErrors(yas6502::Assembler &asmb)
+    {
+        for (yas6502::Message message : asmb.messages()) {
+            cerr
+                << std::setw(5) << message.line() << ": "
+                << (message.warning() ? "Warning" : "Error")
+                << ": "
+                << message.message()
+                << endl;
+        }
+
+        cerr
+            << asmb.errors() << " error(s), "
+            << asmb.warnings() << " warning(s)."
+            << endl;
+    }
+
+    /**
+     * Write a simple object file format.
+     */
+    void writeObjectFile(const std::string &fn, const yas6502::Image &image)
+    {
+        ofstream out{ fn };
+        if (!out) {
+            ss err{};
+            err
+                << "Could not open object file `"
+                << fn
+                << "' for write.";
+            throw yas6502::Error{ err.str() };
+        }
+        
+        int last = -1;
+        int col = 0;
+        
+        out 
+            << std::hex 
+            << std::setfill('0')
+            << std::uppercase;
+
+        for (int addr = 0; addr < 0x10000; addr++) {
+            if (image[addr] == -1) {
+                continue;
+            }
+
+            if (addr != last + 1) {
+                if (col != 0) {
+                    out << endl;
+                }
+                out << '@' << std::setw(4) << addr << endl;
+            } 
+
+            out << std::setw(2) << (int)image[addr];
+            col++;
+            if (col < 16) {
+                out << " ";
+            } else {
+                col = 0;
+                out << endl;
+            }
+
+            last = addr;
+        }
     }
 }

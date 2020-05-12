@@ -178,6 +178,17 @@ namespace yas6502
     }
 
     /**
+     * Return the assembled image
+     */
+    const Image &Assembler::image() const
+    {
+        if (pass2_ == nullptr) {
+            throw Error{ "There is no generated image; check errors or assemble first." };
+        } 
+        return pass2_->image();
+    }
+
+    /**
      * Called by the parser to set the program when parsing is done.
      */
     void Assembler::setProgram(vector<unique_ptr<ast::Node>> &&program)

@@ -194,9 +194,7 @@ namespace yas6502
                         }
                     }
                 }
-
                 break;
-            
 
             case AddrMode::Indirect:
                 // Indirect is always a word operand
@@ -217,6 +215,24 @@ namespace yas6502
             }
 
             pass1.setLoc(pass1.loc() + size);
+
+            if (opcode->undocumented) {
+                ss err{};
+
+                if (opcode->unstable) {
+                    err
+                        << "The `" 
+                        << opcode_ 
+                        << "' instruction is undocumented and known to be unstable in some situations.";
+                } else {
+                    err
+                        << "The `" 
+                        << opcode_ 
+                        << "' instruction is undocumented any may not work on all processor revisions.";
+                }   
+
+                throw Error{ err.str(), ErrorType::Warning };
+            }
         }
 
         /**

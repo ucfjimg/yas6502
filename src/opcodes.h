@@ -27,8 +27,33 @@
 
 namespace yas6502
 {
+    class InstructionEncoding
+    {
+    public:
+        InstructionEncoding(unsigned opcode);
+        InstructionEncoding &setUndocumented();
+        InstructionEncoding &setUnstable();
+        InstructionEncoding &setClocks(int clocks);
+        InstructionEncoding &setExtraClocks();
+
+        bool undocumented() const;
+        bool unstable() const;
+        int clocks() const;
+        bool extraClocks() const;
+
+    private:
+        unsigned opcode_;
+        unsigned clocks_;
+        bool undocumented_;
+        bool unstable_;
+        bool extraClocks_;
+    };
+
     struct Opcode
     {
+        bool undocumented;
+        bool unstable;
+
         int accumulator;
         int immediate;
         int implied;

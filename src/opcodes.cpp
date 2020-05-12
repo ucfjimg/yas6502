@@ -25,8 +25,61 @@
 
 namespace yas6502
 {
+    /** 
+     * Construct an instruction encoding
+     */ 
+    InstructionEncoding::InstructionEncoding(unsigned opcode)
+        : opcode_(opcode)
+        , clocks_(0)
+        , undocumented_(false)
+        , unstable_(false)
+        , extraClocks_(false)
+    {
+    }
+
+    /**
+     * Mark an encoding as undocumented
+     */
+    InstructionEncoding &InstructionEncoding::setUndocumented()
+    {
+        undocumented_ = true;
+        return *this;
+    }
+
+    /**
+     * Mark an encoding as unstablke
+     */
+    InstructionEncoding &InstructionEncoding::setUnstable()
+    {
+        unstable_ = true;
+        return *this;
+    }
+
+    /**
+     * Set the base number of clocks (the instruction may take more due
+     * to branching or page crossings, if so, extra clocks will be set) 
+     */
+    InstructionEncoding &InstructionEncoding::setClocks(int clocks)
+    {
+        clocks_ = clocks;
+        return *this;
+    }
+
+    /**
+     * Mark an encoding as undocumented
+     */
+    InstructionEncoding &InstructionEncoding::setExtraClocks()
+    {
+        extraClocks_ = true;
+        return *this;
+    }
+
+
+
     Opcode::Opcode()
-        : accumulator(-1)
+        : undocumented(false)
+        , unstable(false)
+        , accumulator(-1)
         , immediate(-1)
         , implied(-1)
         , zeroPage(-1)
@@ -364,6 +417,119 @@ namespace yas6502
         Opcode TYA{};
         TYA.implied = 0x98;
         opcodes["TYA"] = TYA;
+
+        // Undocumented opcodes. 
+        //
+        Opcode SLO{};
+        SLO.undocumented = true;
+        SLO.zeroPage = 0x07;
+        SLO.zeroPageX = 0x17;
+        SLO.indirectX = 0x03;
+        SLO.indirectY = 0x13;
+        SLO.absolute = 0x0F;
+        SLO.absoluteX = 0x1F;
+        SLO.absoluteY = 0x1B;
+        opcodes["SLO"] = SLO;
+
+        Opcode RLA{};
+        RLA.undocumented = true;
+        RLA.zeroPage = 0x27;
+        RLA.zeroPageX = 0x37;
+        RLA.indirectX = 0x23;
+        RLA.indirectY = 0x33;
+        RLA.absolute = 0x2F;
+        RLA.absoluteX = 0x3F;
+        RLA.absoluteY = 0x3B;
+        opcodes["RLA"] = RLA;
+
+        Opcode SRE{};
+        SRE.undocumented = true;
+        SRE.zeroPage = 0x47;
+        SRE.zeroPageX = 0x57;
+        SRE.indirectX = 0x43;
+        SRE.indirectY = 0x53;
+        SRE.absolute = 0x4F;
+        SRE.absoluteX = 0x5F;
+        SRE.absoluteY = 0x5B;
+        opcodes["SRE"] = SRE;
+
+        Opcode RRA{};
+        RRA.undocumented = true;
+        RRA.zeroPage = 0x67;
+        RRA.zeroPageX = 0x77;
+        RRA.indirectX = 0x63;
+        RRA.indirectY = 0x73;
+        RRA.absolute = 0x6F;
+        RRA.absoluteX = 0x7F;
+        RRA.absoluteY = 0x7B;
+        opcodes["RRA"] = RRA;
+
+        Opcode SAX{};
+        SAX.undocumented = true;
+        SAX.zeroPage = 0x87;
+        SAX.zeroPageY = 0x97;
+        SAX.indirectX = 0x83;
+        SAX.absolute = 0x8F;
+        opcodes["SAX"] = SAX;
+
+        Opcode LAX{};
+        LAX.undocumented = true;
+        LAX.zeroPage = 0xA7;
+        LAX.zeroPageY = 0xB7;
+        LAX.indirectX = 0xA3;
+        LAX.indirectY = 0xB3;
+        LAX.absolute = 0xAF;
+        LAX.absoluteY = 0xBF;
+        opcodes["LAX"] = LAX;
+
+        Opcode DCP{};
+        DCP.undocumented = true;
+        DCP.zeroPage = 0xC7;
+        DCP.zeroPageX = 0xD7;
+        DCP.indirectX = 0xC3;
+        DCP.indirectY = 0xD3;
+        DCP.absolute = 0xCF;
+        DCP.absoluteX = 0xDF;
+        DCP.absoluteY = 0xDB;
+        opcodes["DCP"] = DCP;
+
+        Opcode ISC{};
+        ISC.undocumented = true;
+        ISC.zeroPage = 0xE7;
+        ISC.zeroPageX = 0xF7;
+        ISC.indirectX = 0xE3;
+        ISC.indirectY = 0xF3;
+        ISC.absolute = 0xEF;
+        ISC.absoluteX = 0xFF;
+        ISC.absoluteY = 0xFB;
+        opcodes["ISC"] = ISC;
+
+        Opcode ANC{};
+        ANC.undocumented = true;
+        ANC.immediate = 0x0B;
+        opcodes["ANC"] = ANC;
+
+        Opcode ALR{};
+        ALR.undocumented = true;
+        ALR.immediate = 0x4B;
+        opcodes["ALR"] = ALR;
+
+        Opcode ARR{};
+        ARR.undocumented = true;
+        ARR.immediate = 0x6B;
+        opcodes["ARR"] = ARR;
+
+        Opcode XAA{};
+        XAA.undocumented = true;
+        XAA.unstable = true;
+        XAA.immediate = 0x8B;
+        opcodes["XAA"] = XAA;
+
+        Opcode AXS{};
+        AXS.undocumented = true;
+        AXS.immediate = 0xCB;
+        opcodes["AXS"] = AXS;
+
 
         for (const auto &p : opcodes) {
             const Opcode &opcode = p.second;

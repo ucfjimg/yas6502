@@ -109,6 +109,40 @@ namespace yas6502
         {
             return opcode_;
         }
+        
+        /**
+         * Returns true if the instruction or this encoding is undocumented
+         */
+        bool Encoding::undocumented() const
+        {
+            return undocumented_;
+        }
+
+        /**
+         * Returns true if the instruction or this encoding have been
+         * reported to be unstable on some processors.
+         */
+        bool Encoding::unstable() const
+        {
+            return unstable_;
+        }
+
+        /**
+         * Returns the base number of clocks for the encoding
+         */
+        int Encoding::clocks() const
+        {
+            return clocks_;
+        }
+
+        /**
+         * Returns true if there are conditions where the instruction can
+         * take more than the base number of clock cycles.
+         */
+        bool Encoding::extraClocks() const
+        {
+            return extraClocks_;
+        }
 
         /**
          * Default constructor

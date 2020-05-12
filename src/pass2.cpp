@@ -208,7 +208,7 @@ namespace yas6502
              * Get an opcode for an instruction, and throw
              * an exception if it doesn't exist.
              */
-            unsigned ensureOpcode(const opcodes::Instruction &instr, opcodes::AddrMode mode)
+            const opcodes::Encoding &ensureEncoding(const opcodes::Instruction &instr, opcodes::AddrMode mode)
             {
                 const opcodes::Encoding &enc = instr.encoding(mode);
                 if (!enc.exists()) {
@@ -221,7 +221,7 @@ namespace yas6502
                         << " mode.";
                     throw Error{ err.str() };
                 }
-                return enc.opcode();
+                return enc;
             }
         }
 
@@ -241,20 +241,26 @@ namespace yas6502
 
             int value = 0;
 
+
+            const opcodes::Encoding *enc = nullptr;
+
             // TODO I'm not a fan of this big switch nor the matching
             // one in pass 1.
             switch (address_->mode()) {
             case AddrMode::Implied:
-                pass2.emit(ensureOpcode(instr, opcodes::AddrMode::Implied));
+                enc = &ensureEncoding(instr, opcodes::AddrMode::Implied);
+                pass2.emit(enc->opcode());
                 break;
 
             case AddrMode::Accumulator:
-                pass2.emit(ensureOpcode(instr, opcodes::AddrMode::Accumulator));
+                enc = &ensureEncoding(instr, opcodes::AddrMode::Accumulator);
+                pass2.emit(enc->opcode());
                 break;
 
             case AddrMode::Immediate:
                 value = pass2.evalCheckDefined(*address_->addressExpr());
-                pass2.emit(ensureOpcode(instr, opcodes::AddrMode::Immediate));
+                enc = &ensureEncoding(instr, opcodes::AddrMode::Immediate);
+                pass2.emit(enc->opcode());
                 pass2.emit(value);
 
                 // NB do this checks after emit() because they throw
@@ -266,11 +272,11 @@ namespace yas6502
                 {
                     value = pass2.evalCheckDefined(*address_->addressExpr());
                     if (instr.hasEncoding(opcodes::AddrMode::Relative)) {
-                        const auto &enc = instr.encoding(opcodes::AddrMode::Relative);
+                        enc = &instr.encoding(opcodes::AddrMode::Relative);
 
                         int delta = value - (pass2.loc() + 2);
 
-                        pass2.emit(enc.opcode());
+                        pass2.emit(enc->opcode());
                         pass2.emit(delta);
 
                         if (delta < -128 || delta > 127) {
@@ -280,12 +286,14 @@ namespace yas6502
                     }
 
                     if (operandSize_ == DataSize::Byte) {
-                        pass2.emit(ensureOpcode(instr, opcodes::AddrMode::ZeroPage));
+                        enc = &ensureEncoding(instr, opcodes::AddrMode::ZeroPage);
+                        pass2.emit(enc->opcode());
                         pass2.emit(value);
                         break;
                     }
                     
-                    pass2.emit(ensureOpcode(instr, opcodes::AddrMode::Absolute));
+                    enc = &ensureEncoding(instr, opcodes::AddrMode::Absolute);
+                    pass2.emit(enc->opcode());
                     pass2.emit(value & 0xFF);
                     pass2.emit(value >> 8);
                     break;
@@ -304,14 +312,14 @@ namespace yas6502
                     //
                     if (operandSize_ == DataSize::Byte) {
                         if (isX) {
-                            op = ensureOpcode(instr, opcodes::AddrMode::ZeroPageX);
+                            enc = &ensureEncoding(instr, opcodes::AddrMode::ZeroPageX);
                         } else {
-                            op = ensureOpcode(instr, opcodes::AddrMode::ZeroPageY);
+                            enc = &ensureEncoding(instr, opcodes::AddrMode::ZeroPageY);
                         }
                     } else {
                         if (isX) {
                             if (!instr.hasEncoding(opcodes::AddrMode::AbsoluteX)) {
-                                op = ensureOpcode(instr, opcodes::AddrMode::ZeroPageX);
+                                enc = &ensureEncoding(instr, opcodes::AddrMode::ZeroPageX);
 
                                 if (value < -127 || value > 255) {
                                     ss err{};
@@ -323,11 +331,11 @@ namespace yas6502
 
                                 operandSize_ = DataSize::Byte;
                             } else {
-                                op = ensureOpcode(instr, opcodes::AddrMode::AbsoluteX);
+                                enc = &ensureEncoding(instr, opcodes::AddrMode::AbsoluteX);
                             }
                         } else {
                             if (!instr.hasEncoding(opcodes::AddrMode::AbsoluteY)) {
-                                op = ensureOpcode(instr, opcodes::AddrMode::ZeroPageX);
+                                enc = &ensureEncoding(instr, opcodes::AddrMode::ZeroPageX);
 
                                 if (value < -127 || value > 255) {
                                     ss err{};
@@ -339,12 +347,12 @@ namespace yas6502
 
                                 operandSize_ = DataSize::Byte;
                             } else {
-                                op = ensureOpcode(instr, opcodes::AddrMode::AbsoluteY);
+                                enc = &ensureEncoding(instr, opcodes::AddrMode::AbsoluteY);
                             }
                         }
                     }
 
-                    pass2.emit(op);
+                    pass2.emit(enc->opcode());
                     pass2.emit(value & 0xFF);
                     if (operandSize_ == DataSize::Word) {
                         pass2.emit(value >> 8);
@@ -354,7 +362,8 @@ namespace yas6502
 
             case AddrMode::Indirect:
                 value = pass2.evalCheckDefined(*address_->addressExpr());
-                pass2.emit(ensureOpcode(instr, opcodes::AddrMode::Indirect));
+                enc = &ensureEncoding(instr, opcodes::AddrMode::Indirect);
+                pass2.emit(enc->opcode());
                 pass2.emit(value & 0xFF);
                 pass2.emit(value >> 8);
                 break;
@@ -363,21 +372,27 @@ namespace yas6502
             case AddrMode::IndirectY:
                 int op = -1;
                 if (address_->mode() == AddrMode::IndirectX) {
-                    op = ensureOpcode(instr, opcodes::AddrMode::IndirectX);
+                    enc = &ensureEncoding(instr, opcodes::AddrMode::IndirectX);
                 } else {
-                    op = ensureOpcode(instr, opcodes::AddrMode::IndirectY);
+                    enc = &ensureEncoding(instr, opcodes::AddrMode::IndirectY);
                 }
 
                 value = pass2.evalCheckDefined(*address_->addressExpr());
 
-                pass2.emit(op);
+                pass2.emit(enc->opcode());
                 pass2.emit(value & 0xFF);
 
                 if (value < 0 || value > 0xFF) {
                     throw Error{ "Address is not in zero page." };
                 }
                 break;
+            }
 
+            if (enc != nullptr) {
+                clockCycles_ = enc->clocks();
+                hasExtraClockCycles_ = enc->extraClocks();
+                undocumented_ = enc->undocumented();
+                unstable_ = enc->unstable();
             }
         }
 

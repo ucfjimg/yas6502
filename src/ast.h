@@ -60,6 +60,7 @@ namespace yas6502
             int line() const;
             int loc() const;
             virtual int length() const;
+            virtual std::string attributes() const;
 
             std::vector<std::string> str(const Image &image);
 
@@ -115,9 +116,15 @@ namespace yas6502
             virtual void pass2(Pass2 &pass2) override;
             virtual std::string toString() override;
 
+            virtual std::string attributes() const override;
+
         private:
             std::string opcode_;
             AddressPtr address_;
+            int clockCycles_;
+            bool hasExtraClockCycles_;
+            bool undocumented_;
+            bool unstable_;
 
             // Computed in pass 1
             //

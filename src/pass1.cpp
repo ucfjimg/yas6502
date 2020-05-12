@@ -214,26 +214,6 @@ namespace yas6502
             }
 
             pass1.setLoc(pass1.loc() + size);
-
-#if 0
-            if (opcode->undocumented) {
-                ss err{};
-
-                if (opcode->unstable) {
-      ;w              err
-                        << "The `" 
-                        << opcode_ 
-                        << "' instruction is undocumented and known to be unstable in some situations.";
-                } else {
-                    err
-                        << "The `" 
-                        << opcode_ 
-                        << "' instruction is undocumented any may not work on all processor revisions.";
-                }   
-
-                throw Error{ err.str(), ErrorType::Warning };
-            }
-#endif
         }
 
         /**

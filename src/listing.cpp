@@ -36,6 +36,14 @@ namespace yas6502
     namespace ast 
     {
         /**
+         * Return default string for node attributes 
+         */
+        string Node::attributes() const
+        {
+            return "";
+        }
+
+        /**
          * Convert this line to a string. This is the public 
          * interface that handles the fields every node has, and
          * toString() is overridden by each subclass to convert
@@ -64,7 +72,10 @@ namespace yas6502
                 line << "   ";
             }
 
-            line << std::setfill(' ');
+            line 
+                << std::setfill(' ')
+                << std::setw(8) << attributes()
+                << " ";
 
             if (!label_.empty()) {
                 line << std::setw(9) << std::left << (label_ + ":");
@@ -137,6 +148,22 @@ namespace yas6502
             }
 
             return line.str();
+        }
+
+        /**
+         * Return the clock cycles description
+         */
+        string InstructionNode::attributes() const
+        {
+            ss text{};
+            text 
+                << clockCycles_
+                << (hasExtraClockCycles_ ? '+' : ' ')
+                << " "
+                << (undocumented_ ? 'U' : ' ')
+                << (unstable_ ? 'S' : ' ');
+
+            return text.str();
         }
 
         /**

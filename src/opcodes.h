@@ -75,8 +75,9 @@ namespace yas6502
         class Instruction
         {
         public:
+            Instruction();
             Instruction(const std::string &mnemonic);
-            Instruction &addEncoding(AddrMode mode, Encoding &&encoding);
+            Instruction &addEncoding(AddrMode mode, const Encoding &encoding);
 
             std::string mnemonic() const;
             bool hasEncoding(AddrMode mode) const;

@@ -221,6 +221,7 @@ namespace yas6502
                         << " mode.";
                     throw Error{ err.str() };
                 }
+                return enc.opcode();
             }
         }
 

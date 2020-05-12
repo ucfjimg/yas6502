@@ -591,6 +591,26 @@ namespace yas6502
             NOP
             .addEncoding(AddrMode::Implied,
                 Encoding{ 0xEA }
+            )
+            .addEncoding(AddrMode::Immediate,
+                Encoding{ 0x80 }
+                    .setUndocumented()
+            )
+            .addEncoding(AddrMode::ZeroPage,
+                Encoding{ 0x04 }
+                    .setUndocumented()
+            )
+            .addEncoding(AddrMode::ZeroPageX,
+                Encoding{ 0x14 }
+                    .setUndocumented()
+            )
+            .addEncoding(AddrMode::Absolute,
+                Encoding{ 0x0C }
+                    .setUndocumented()
+            )
+            .addEncoding(AddrMode::AbsoluteX,
+                Encoding{ 0x1C }
+                    .setUndocumented()
             );
             opcodes["NOP"] = NOP;
 
@@ -1132,6 +1152,54 @@ namespace yas6502
             );
             opcodes["AXS"] = AXS;
 
+            Instruction AHX("AHX");
+            AHX 
+            .addEncoding(AddrMode::IndirectY,
+                Encoding{ 0x93 }
+                    .setUndocumented()
+                    .setUnstable()
+            )
+            .addEncoding(AddrMode::AbsoluteY,
+                Encoding{ 0x9F }
+                    .setUndocumented()
+                    .setUnstable()
+            );
+            opcodes["AHX"] = AHX;
+
+            Instruction SHX("SHX");
+            SHX 
+            .addEncoding(AddrMode::AbsoluteY,
+                Encoding{ 0x9E }
+                    .setUndocumented()
+                    .setUnstable()
+            );
+            opcodes["SHX"] = SHX;
+
+            Instruction SHY("SHY");
+            SHY 
+            .addEncoding(AddrMode::AbsoluteX,
+                Encoding{ 0x9C }
+                    .setUndocumented()
+                    .setUnstable()
+            );
+            opcodes["SHY"] = SHY;
+
+            Instruction TAS("TAS");
+            TAS 
+            .addEncoding(AddrMode::AbsoluteY,
+                Encoding{ 0x9B }
+                    .setUndocumented()
+                    .setUnstable()
+            );
+            opcodes["TAS"] = SHY;
+
+            Instruction LAS("LAS");
+            LAS 
+            .addEncoding(AddrMode::AbsoluteY,
+                Encoding{ 0xBB }
+                    .setUndocumented()
+            );
+            opcodes["LAS"] = LAS;
 
             for (const auto &p : opcodes) {
                 const Instruction &instr = p.second;

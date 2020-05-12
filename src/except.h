@@ -19,34 +19,31 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **/
-#ifndef SYMTAB_H_
-#define SYMTAB_H_
+#ifndef EXCEPT_H_
+#define EXCEPT_H_
 
-#include <map>
+#include <stdexcept>
 #include <string>
 
 namespace yas6502
 {
-    struct Symbol
+    enum class ErrorType
     {
-        Symbol();
-
-        bool defined;
-        int value;
+        Warning,
+        Error,
     };
 
-    class SymbolTable
+    class Error : public std::exception
     {
     public:
-        void clear();
-        Symbol lookup(const std::string &name);
-        void setValue(const std::string &name, int value);
+        Error(const std::string &message, ErrorType type = ErrorType::Error);
+        std::string message() const;
+        ErrorType type() const;
 
     private:
-        std::map<std::string, Symbol> symbols_;
+        std::string message_;
+        ErrorType type_;
     };
 }
-
-
 #endif
 

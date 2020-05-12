@@ -23,7 +23,10 @@
 #define ASSEMBLER_H_
 
 #include "ast.h"
+#include "pass1.h"
+#include "pass2.h"
 #include "opcodes.h"
+#include "symtab.h"
 
 #include <string>
 #include <map>
@@ -42,6 +45,10 @@ namespace yas6502
         void setTrace();
         void assemble(const std::string &file);
 
+        int errors() const;
+        int warnings() const; 
+        std::vector<Message> messages() const;
+
         void setProgram(std::vector<std::unique_ptr<ast::Node>> &&program);
 
         yy::location &loc();
@@ -56,7 +63,13 @@ namespace yas6502
         std::string file_;
         bool trace_;
 
+        SymbolTable symtab_;
+        std::unique_ptr<Pass1> pass1_;
+        std::unique_ptr<Pass2> pass2_;
+
         std::vector<std::unique_ptr<ast::Node>> program_;
+
+        void parse();
     };
 }
 

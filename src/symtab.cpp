@@ -21,13 +21,14 @@
  **/
 #include "symtab.h"
 
+#include "except.h"
+
 #include <algorithm>
 #include <cctype>
 #include <sstream>
 #include <stdexcept>
 
 using std::map;
-using std::runtime_error;
 using std::string;
 
 using ss = std::stringstream;
@@ -41,6 +42,14 @@ namespace yas6502
         : defined(false)
         , value(1)
     {
+    }
+
+    /**
+     * Clear all symbols
+     */
+    void SymbolTable::clear()
+    {
+        symbols_.clear();
     }
 
     /**
@@ -71,7 +80,7 @@ namespace yas6502
                 << name
                 << "'.";
 
-            throw runtime_error{ err.str() };
+            throw Error{ err.str() };
         }
 
         Symbol &sym = symbols_[name];

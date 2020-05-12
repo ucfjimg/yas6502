@@ -22,14 +22,31 @@
 #ifndef PASS_H_
 #define PASS_H_
 
+#include "except.h"
 #include "opcodes.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace yas6502
 {
     class SymbolTable;
+    
+    class Message 
+    {
+    public:
+        Message(bool warning, int line, const std::string &message);
+
+        bool warning() const;
+        int line() const;
+        std::string message() const;
+
+    private:
+        bool warning_;
+        int line_;
+        std::string message_;
+    };
 
     class Pass
     {
@@ -43,10 +60,19 @@ namespace yas6502
         int loc() const;
         void setLoc(int loc);
 
+        void pushMessage(const Message &msg);
+
+        int warnings() const;
+        int errors() const;
+        const std::vector<Message> &messages() const;
+
     protected:
         SymbolTable &symtab_;
         const OpcodeMap &opcodes_;
         int loc_;
+        int errors_;
+        int warnings_;
+        std::vector<Message> messages_;
     };
 }
 #endif

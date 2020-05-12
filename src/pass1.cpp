@@ -21,6 +21,8 @@
  **/
 #include "pass1.h"
 
+#include "except.h"
+
 #include "ast.h"
 #include "symtab.h"
 #include "utility.h"
@@ -29,12 +31,13 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <stdexcept>
 
 using std::cerr;
 using std::endl;
+using std::string;
 using std::unique_ptr;
-using std::runtime_error;
 using std::vector;
 
 using ss = std::stringstream;
@@ -60,8 +63,9 @@ namespace yas6502
             try {
                 node->setLoc(loc_);
                 node->pass1(*this);
-            } catch (runtime_error &ex) {
-                cerr << std::setw(5) << node->line() << " " << ex.what() << endl; 
+            } catch (Error &ex) {
+                bool warning = ex.type() == ErrorType::Warning;
+                pushMessage(Message{ warning, node->line(), ex.message() });
             }
         }
     }
@@ -95,7 +99,7 @@ namespace yas6502
                    << "ORG expression must be fully defined in pass1, but contains undefined symbols '"
                    << concatSet(er.undefinedSymbols(), "', '")
                    << "'.";
-               throw runtime_error{ err.str() };
+               throw Error{ err.str() };
             }
 
             computedLoc_ = er.value();

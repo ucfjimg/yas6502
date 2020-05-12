@@ -22,6 +22,7 @@
 #include "pass2.h"
 
 #include "ast.h"
+#include "except.h"
 #include "symtab.h"
 #include "utility.h"
 
@@ -35,7 +36,6 @@
 using std::array;
 using std::cerr;
 using std::endl;
-using std::runtime_error;
 using std::string;
 using std::unique_ptr;
 using std::vector;
@@ -66,8 +66,9 @@ namespace yas6502
             try {
                 node->pass2(*this);
                 node->setNextLoc(loc_);
-            } catch (runtime_error &ex) {
-                cerr << std::setw(5) << node->line() << " " << ex.what() << endl; 
+            } catch (Error &ex) {
+                bool warning = ex.type() == ErrorType::Warning;
+                pushMessage(Message{ warning, node->line(), ex.message() });
             }
         }
     }
@@ -94,7 +95,7 @@ namespace yas6502
                 << "$0000-$FFFF. Location counter is $"
                 << std::hex << std::setw(8) << std::setfill('0') << loc_
                 << ".";
-            throw runtime_error{ err.str() };
+            throw Error{ err.str() };
         }
 
         image_[loc_++] = byte & 0xFF;
@@ -109,13 +110,13 @@ namespace yas6502
     {
         ast::ExprResult er = expr.eval(symtab_);
         if (!er.defined()) {
-            // All symbols must be fully defiend in pass 2.
+            // All symbols must be fully defined in pass 2.
             ss err{};
             err
                 << "Symbols '"
                 << concatSet(er.undefinedSymbols(), "', '")
                 << "' are undefined in instruction operand.";
-            throw runtime_error{ err.str() };
+            throw Error{ err.str() };
         }
         return er.value();
     }
@@ -135,8 +136,7 @@ namespace yas6502
             << "Operand value "
             << value
             << " should fit in one byte; truncated.";
-            // TODO exception hierarchy to specify warnings vs errors
-            throw runtime_error{ err.str() };
+            throw Error{ err.str(), ErrorType::Warning };
     }
 
     namespace ast
@@ -160,7 +160,7 @@ namespace yas6502
             // The expression was fully defined in pass 1, 
             // so sanity check that it hasn't changed.
             if (value != computedLoc_) {
-                throw runtime_error{ "ORG expression has a different value in pass 2." };
+                throw Error{ "ORG expression has a different value in pass 2." };
             }
 
             pass2.setLoc(computedLoc_);
@@ -201,7 +201,7 @@ namespace yas6502
                     << "' has no "
                     << mode
                     << " mode.";
-                throw runtime_error{ err.str() };
+                throw Error{ err.str() };
             };
 
             int value = 0;
@@ -245,7 +245,7 @@ namespace yas6502
                 if (opcode->relative != -1) {
                     int delta = value - (pass2.loc() + 2);
                     if (delta < -128 || delta > 127) {
-                        throw runtime_error{ "Relative branch is out of range." };
+                        throw Error{ "Relative branch is out of range." };
                     }
 
                     pass2.emit(opcode->relative);
@@ -303,7 +303,7 @@ namespace yas6502
                                     err
                                         << "There is no absolute,x mode for this instruction, "
                                         << "and the address is not in zero page.";
-                                    throw runtime_error{ err.str() };
+                                    throw Error{ err.str() };
                                 }
 
                                 operandSize_ = DataSize::Byte;
@@ -319,7 +319,7 @@ namespace yas6502
                                     err
                                         << "There is no absolute,y mode for this instruction, "
                                         << "and the address is not in zero page.";
-                                    throw runtime_error{ err.str() };
+                                    throw Error{ err.str() };
                                 }
 
                                 operandSize_ = DataSize::Byte;
@@ -366,7 +366,7 @@ namespace yas6502
                 pass2.emit(value & 0xFF);
 
                 if (value < 0 || value > 0xFF) {
-                    throw runtime_error{ "Address is not in zero page." };
+                    throw Error{ "Address is not in zero page." };
                 }
                 break;
 

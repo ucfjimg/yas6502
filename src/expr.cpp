@@ -21,13 +21,13 @@
  **/
 #include "ast.h"
 
+#include "except.h"
 #include "symtab.h"
 
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
 
-using std::runtime_error;
 using std::set;
 using std::string;
 
@@ -136,7 +136,7 @@ namespace yas6502
 
         case Operator::Div:
             if (right.value() == 0) {
-                throw runtime_error{ "Divide by zero." };
+                throw Error{ "Divide by zero." };
             }
             left = ExprResult{ left.value() / right.value() };
             break;

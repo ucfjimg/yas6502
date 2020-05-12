@@ -13,6 +13,7 @@ add_executable(yas6502
 
     src/assembler.cpp
     src/ast.cpp
+    src/except.cpp
     src/expr.cpp
     src/opcodes.cpp
     src/pass.cpp

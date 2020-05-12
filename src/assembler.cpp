@@ -21,11 +21,13 @@
  **/
 #include "assembler.h"
 
+#include "except.h"
 #include "opcodes.h"
 #include "pass1.h"
 #include "pass2.h"
 #include "symtab.h"
 
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -33,7 +35,7 @@
 
 using std::cout;
 using std::endl;
-using std::runtime_error;
+using std::make_unique;
 using std::string;
 using std::unique_ptr;
 using std::vector;
@@ -76,7 +78,6 @@ namespace yas6502
      */
     const Opcode *Assembler::opcode(const string &op) const
     {
-        // TODO strupr
         auto it = opcodes_.find(op);
         if (it != opcodes_.end()) {
             return &it->second;
@@ -85,11 +86,10 @@ namespace yas6502
     }
 
     /**
-     * Parse and assemble the given file.
+     * Run the parser
      */
-    void Assembler::assemble(const string &filename)
+    void Assembler::parse()
     {
-        file_ = filename;
         location_.initialize(&file_);
 
         yy_flex_debug = trace_;
@@ -99,7 +99,7 @@ namespace yas6502
             ss err{};
             err
                 << "Could not open `" << file_ << "': " << strerror(errno) << std::endl;
-            throw runtime_error{ err.str() };
+            throw Error{ err.str() };
         }
 
         yy::parser parse(*this);
@@ -108,17 +108,73 @@ namespace yas6502
 
         fclose(yyin);
         yyin = nullptr;
+    }
 
-        SymbolTable symtab{};
-        Pass1 pass1{ symtab, opcodes_ };
-        pass1.pass1(program_);
+    /**
+     * Parse and assemble the given file.
+     */
+    void Assembler::assemble(const string &filename)
+    {
+        file_ = filename;
+        program_.clear();
 
-        Pass2 pass2{ symtab, opcodes_ };
-        pass2.pass2(program_);
+        parse();
 
-        for (const auto &np : program_) {
-            cout << np->str(pass2.image()) << endl;
+        symtab_.clear();
+        pass1_ = make_unique<Pass1>( symtab_, opcodes_ );
+        pass2_ = make_unique<Pass2>( symtab_, opcodes_ );
+
+        pass1_->pass1(program_);
+        if (pass1_->errors() == 0) {
+            pass2_->pass2(program_);
         }
+    }
+    
+    /**
+     * Return the number of errors.
+     */
+    int Assembler::errors() const
+    {
+        if (pass1_ == nullptr || pass2_ == nullptr) {
+            return 0;
+        }
+
+        return pass1_->errors() + pass2_->errors();
+    }
+
+    /**
+     * Return the number of warnings
+     */
+    int Assembler::warnings() const
+    {
+        if (pass1_ == nullptr || pass2_ == nullptr) {
+            return 0;
+        }
+
+        return pass1_->warnings() + pass2_->warnings();
+    }
+
+    /**
+     * Return all of the warnings and errors, sorted by line.
+     */
+    vector<Message> Assembler::messages() const
+    {
+        vector<Message> ret{};
+
+        if (pass1_ != nullptr && pass2_ != nullptr) {
+            std::copy(pass1_->messages().begin(), pass1_->messages().end(), std::back_inserter(ret));
+            std::copy(pass2_->messages().begin(), pass2_->messages().end(), std::back_inserter(ret));
+        }
+
+        std::sort(
+            ret.begin(),
+            ret.end(),
+            [&](const Message &left, const Message &right) {
+                return left.line() < right.line();
+            }
+        );
+
+        return ret;
     }
 
     /**

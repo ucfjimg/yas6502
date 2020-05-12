@@ -29,6 +29,7 @@
 %define parse.assert
 
 %code requires {
+    #include <iomanip>
     #include <string>
     #include <vector>
     #include "ast.h"
@@ -199,6 +200,6 @@ expression:
 
 void yy::parser::error(const location_type& l, const std::string& m)
 {
-  cerr << l << ": " << m << endl;
+  cerr << std::setw(5) << l.begin.line << ": Error: " << m << endl;
 }
 

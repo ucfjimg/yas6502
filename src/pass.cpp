@@ -21,18 +21,53 @@
  **/
 #include "pass.h"
 
+#include "except.h"
 #include "utility.h"
 
 #include <stdexcept>
 #include <string>
 
 using std::make_unique;
-using std::runtime_error;
 using std::string;
 using std::unique_ptr;
+using std::vector;
 
 namespace yas6502
 {
+    /**
+     * Constructor
+     */
+    Message::Message(bool warning, int line, const std::string &message)
+        : warning_(warning)
+        , line_(line)
+        , message_(message)
+    {
+    }
+
+    /**
+     * Return true if the message is a warning
+     */
+    bool Message::warning() const
+    {
+        return warning_;
+    }
+
+    /**
+     * Return the line number the message applies to
+     */
+    int Message::line() const
+    {
+        return line_;
+    }
+
+    /**
+     * Return the text of the message
+     */
+    string Message::message() const
+    {
+        return message_;
+    }
+
     /**
      * Constructor
      */
@@ -40,6 +75,8 @@ namespace yas6502
         : symtab_(symtab)
         , opcodes_(opcodes)
         , loc_(0)
+        , errors_(0)
+        , warnings_(0)
     {
     }
 
@@ -64,12 +101,26 @@ namespace yas6502
     void Pass::setLoc(int loc)
     {
         if (loc > 0xFFFF) {
-            throw runtime_error{ "Location counter cannot exceed $FFFF." };
+            throw Error{ "Location counter cannot exceed $FFFF." };
         } else if (loc < 0) {
-            throw runtime_error{ "Location counter cannot be negative." };
+            throw Error{ "Location counter cannot be negative." };
         }
 
         loc_ = loc;
+    }
+
+    /**
+     * Push a warning or error message ont the error list.
+     */
+    void Pass::pushMessage(const Message &msg)
+    {
+        if (msg.warning()) {
+            warnings_++;
+        } else {
+            errors_++;
+        }
+
+        messages_.push_back(msg);
     }
 
     /**
@@ -92,5 +143,29 @@ namespace yas6502
     SymbolTable &Pass::symtab()
     {
         return symtab_;
+    }
+
+    /** 
+     * Return the warning count
+     */
+    int Pass::warnings() const
+    {
+        return warnings_;
+    }
+
+    /**
+     * Return the error count
+     */
+    int Pass::errors() const
+    {
+        return errors_;
+    }
+
+    /**
+     * Return the assembly messages from this pass
+     */
+    const vector<Message> &Pass::messages() const
+    {
+        return messages_;
     }
 }

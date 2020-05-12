@@ -21,6 +21,9 @@
  **/
 #include "assembler.h"
 
+#include "except.h"
+
+#include <iomanip>
 #include <iostream>
 
 using std::cerr;
@@ -35,5 +38,31 @@ int main(int argc, char *argv[])
     }
     yas6502::Assembler asmb{};
 
-    asmb.assemble(string{ argv[1] });
+    try {
+        asmb.assemble(string{ argv[1] });
+        
+        if (asmb.errors() || asmb.warnings()) {
+            for (yas6502::Message message : asmb.messages()) {
+                cerr
+                    << std::setw(5) << message.line() << ": "
+                    << (message.warning() ? "Warning" : "Error")
+                    << ": "
+                    << message.message()
+                    << endl;
+            }
+
+            cerr
+                << asmb.errors() << " error(s), "
+                << asmb.warnings() << " warning(s)."
+                << endl;
+
+            if (asmb.errors()) {
+                return 1;
+            }
+        }
+
+
+    } catch (yas6502::Error &ex) {
+        cerr << ex.message() << endl;
+    }
 }

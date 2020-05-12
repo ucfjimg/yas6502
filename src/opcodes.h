@@ -39,12 +39,15 @@ namespace yas6502
             Encoding &setClocks(int clocks);
             Encoding &setExtraClocks();
 
+            bool exists() const;
+            unsigned opcode() const;
             bool undocumented() const;
             bool unstable() const;
             int clocks() const;
             bool extraClocks() const;
 
         private:
+            bool exists_;
             unsigned opcode_;
             unsigned clocks_;
             bool undocumented_;
@@ -57,11 +60,12 @@ namespace yas6502
             Accumulator,
             Immediate,
             Implied,
+            ZeroPage,
             ZeroPageX,
             ZeroPageY,
             Absolute,
             AbsoluteX,
-            AbsuloteY,
+            AbsoluteY,
             Indirect,
             IndirectX,
             IndirectY,
@@ -71,36 +75,20 @@ namespace yas6502
         class Instruction
         {
         public:
+            Instruction(const std::string &mnemonic);
             Instruction &addEncoding(AddrMode mode, Encoding &&encoding);
 
+            std::string mnemonic() const;
+            bool hasEncoding(AddrMode mode) const;
+            const Encoding &encoding(AddrMode mode) const;
+
         private:
+            Encoding nullEncoding_;
+            std::string mnemonic_;
             std::map<AddrMode, Encoding> encodings_;
         };
 
-
-        struct Opcode
-        {
-            bool undocumented;
-            bool unstable;
-
-            int accumulator;
-            int immediate;
-            int implied;
-            int zeroPage;
-            int zeroPageX;
-            int zeroPageY;
-            int absolute;
-            int absoluteX;
-            int absoluteY;
-            int indirect;
-            int indirectX;
-            int indirectY;
-            int relative;
-
-            Opcode();
-        };
-
-        using OpcodeMap = std::map<std::string, Opcode>;
+        using OpcodeMap = std::map<std::string, Instruction>;
 
         extern OpcodeMap makeOpcodeMap();
     }

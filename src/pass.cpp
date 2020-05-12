@@ -24,6 +24,7 @@
 #include "except.h"
 #include "utility.h"
 
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -31,6 +32,8 @@ using std::make_unique;
 using std::string;
 using std::unique_ptr;
 using std::vector;
+
+using ss = std::stringstream;
 
 namespace yas6502
 {
@@ -127,14 +130,17 @@ namespace yas6502
      * Look up an opcode in the opcode map. Case insensitive.
      * Returns nullptr if there is no such opcode.
      */
-    unique_ptr<opcodes::Opcode> Pass::findOpcode(const string &op)
+    const opcodes::Instruction &Pass::findInstruction(const string &op)
     {
         auto it = opcodes_.find(toUpper(op));
         if (it == opcodes_.end()) {
-            return nullptr;
+            ss err{};
+            err
+                << "Unknown opcode `" << op << "'.";
+            throw Error{ err.str() };
         }
 
-        return make_unique<opcodes::Opcode>( it->second ); 
+        return it->second;
     }
 
     /**

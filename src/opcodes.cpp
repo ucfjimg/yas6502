@@ -23,6 +23,8 @@
 
 #include <cassert>
 
+using std::string;
+
 namespace yas6502
 {
     namespace opcodes
@@ -31,7 +33,8 @@ namespace yas6502
          * Default construct an instruction encoding
          */ 
         Encoding::Encoding()
-            : opcode_(0)
+            : exists_(false)
+            , opcode_(0)
             , clocks_(0)
             , undocumented_(false)
             , unstable_(false)
@@ -43,13 +46,15 @@ namespace yas6502
          * Construct an instruction encoding
          */ 
         Encoding::Encoding(unsigned opcode)
-            : opcode_(opcode)
+            : exists_(true)
+            , opcode_(opcode)
             , clocks_(0)
             , undocumented_(false)
             , unstable_(false)
             , extraClocks_(false)
         {
         }
+
 
         /**
          * Mark an encoding as undocumented
@@ -89,6 +94,31 @@ namespace yas6502
         }
 
         /**
+         * True if this encoding exists. False if this is a marker
+         * for a non-existent encoding in the opcode map.
+         */
+        bool Encoding::exists() const
+        {
+            return exists_;
+        }
+
+        /**
+         * Return the one-byte opcode for this encoding
+         */
+        unsigned Encoding::opcode() const
+        {
+            return opcode_;
+        }
+
+        /**
+         * Constructor
+         */
+        Instruction::Instruction(const string& mnemonic)
+            : mnemonic_(mnemonic)
+        {
+        }
+
+        /**
          * Add the encoding for an addressing mode to an instruction.
          */
         Instruction &Instruction::addEncoding(AddrMode mode, Encoding &&encoding)
@@ -97,29 +127,40 @@ namespace yas6502
             return *this;
         }
 
-        Opcode::Opcode()
-            : undocumented(false)
-            , unstable(false)
-            , accumulator(-1)
-            , immediate(-1)
-            , implied(-1)
-            , zeroPage(-1)
-            , zeroPageX(-1)
-            , zeroPageY(-1)
-            , absolute(-1)
-            , absoluteX(-1)
-            , absoluteY(-1)
-            , indirect(-1)
-            , indirectX(-1)
-            , indirectY(-1)
-            , relative(-1)
+        /**
+         * Return the instruction's mnemonic
+         */ 
+        string Instruction::mnemonic() const
         {
+            return mnemonic_;
         }
 
+        /** 
+         * Test if the instruction has an encoding
+         */
+        bool Instruction::hasEncoding(AddrMode mode) const
+        {
+            return encodings_.find(mode) != encodings_.end();
+        }
+
+        /**
+         * Return a mode encoding for the instruction
+         */
+        const Encoding &Instruction::encoding(AddrMode mode) const 
+        {
+            auto it = encodings_.find(mode);
+            if (it != encodings_.end()) {
+                return it->second;
+            }
+
+            return nullEncoding_;
+        }
+        
         OpcodeMap makeOpcodeMap()
         {
             OpcodeMap opcodes{};
 
+#if 0
             Opcode ADC{};
             ADC.immediate = 0x69;
             ADC.zeroPage = 0x65;
@@ -558,7 +599,7 @@ namespace yas6502
                     assert(opcode.absolute != -1);
                 }
             }
-
+#endif
             return opcodes;
         }
     }

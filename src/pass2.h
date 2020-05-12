@@ -47,8 +47,6 @@ namespace yas6502
         int evalCheckDefined(ast::Expression &expr);
         void checkByte(int value);
 
-
-
     private:
         // the address space of a 16-bit processor is so small that
         // it makes sense to just keep an image of all of memory

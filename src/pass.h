@@ -55,7 +55,7 @@ namespace yas6502
         virtual ~Pass();
 
         SymbolTable &symtab();
-        std::unique_ptr<opcodes::Opcode> findOpcode(const std::string &op);
+        const opcodes::Instruction &findInstruction(const std::string &op);
 
         int loc() const;
         void setLoc(int loc);

@@ -73,16 +73,12 @@ namespace yas6502
     }
 
     /**
-     * Return a pointer to an Opcode struct for the given mnemonic, or
-     * nullptr if there is no instruction with that name.
+     * Check if the given string is an opcode. The scanner uses this to
+     * distinguish opcodes from identifiers.
      */
-    const opcodes::Opcode *Assembler::opcode(const string &op) const
+    bool Assembler::isOpcode(const std::string &op) const
     {
-        auto it = opcodes_.find(op);
-        if (it != opcodes_.end()) {
-            return &it->second;
-        }
-        return nullptr;    
+        return opcodes_.find(op) != opcodes_.end();
     }
 
     /**

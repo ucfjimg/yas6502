@@ -142,8 +142,7 @@ namespace yas6502
             int size = 0;
             ExprResult er{ 1 };
             
-            auto opcode = pass1.findOpcode(opcode_);
-            assert(opcode.get() != nullptr);
+            const auto &instr = pass1.findInstruction(opcode_);
 
             switch (address_->mode()) {
             case AddrMode::Implied:
@@ -156,7 +155,7 @@ namespace yas6502
                 break;
 
             case AddrMode::Address: 
-                if (opcode->relative != -1) {
+                if (instr.hasEncoding(opcodes::AddrMode::Relative)) {
                     // relative branch is always a 2-byte instruction
                     size = 2;
                     break;
@@ -167,7 +166,7 @@ namespace yas6502
                 // See if we can fit in zero page. Must have an encoding,
                 // and must have a fully defined operand that fits in
                 // one byte.
-                if (opcode->zeroPage != -1) {
+                if (instr.hasEncoding(opcodes::AddrMode::ZeroPage)) {
                     er = address_->addressExpr()->eval(pass1.symtab());
                     if (er.defined() && er.value() >= 0 && er.value() <= 0xFF) {
                         size = 2;
@@ -184,8 +183,8 @@ namespace yas6502
                     size = 3;
 
                     bool hasZeroPage =
-                        (address_->mode() == AddrMode::AddressX && opcode->zeroPageX != -1) ||
-                        (address_->mode() == AddrMode::AddressY && opcode->zeroPageY != -1);
+                        (address_->mode() == AddrMode::AddressX && instr.hasEncoding(opcodes::AddrMode::ZeroPageX)) ||
+                        (address_->mode() == AddrMode::AddressY && instr.hasEncoding(opcodes::AddrMode::ZeroPageY));
 
                     if (hasZeroPage) {
                         er = address_->addressExpr()->eval(pass1.symtab());
@@ -216,11 +215,12 @@ namespace yas6502
 
             pass1.setLoc(pass1.loc() + size);
 
+#if 0
             if (opcode->undocumented) {
                 ss err{};
 
                 if (opcode->unstable) {
-                    err
+      ;w              err
                         << "The `" 
                         << opcode_ 
                         << "' instruction is undocumented and known to be unstable in some situations.";
@@ -233,6 +233,7 @@ namespace yas6502
 
                 throw Error{ err.str(), ErrorType::Warning };
             }
+#endif
         }
 
         /**

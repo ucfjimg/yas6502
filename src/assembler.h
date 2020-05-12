@@ -56,7 +56,7 @@ namespace yas6502
         yy::location &loc();
         const yy::location &loc() const;
 
-        const opcodes::Opcode *opcode(const std::string &op) const;
+        bool isOpcode(const std::string &op) const;
 
     private:
         opcodes::OpcodeMap opcodes_;

@@ -189,6 +189,14 @@ namespace yas6502
     }
 
     /**
+     * Return the AST of the program
+     */
+    const vector<unique_ptr<ast::Node>> &Assembler::program() const
+    {
+        return program_;
+    }
+
+    /**
      * Called by the parser to set the program when parsing is done.
      */
     void Assembler::setProgram(vector<unique_ptr<ast::Node>> &&program)

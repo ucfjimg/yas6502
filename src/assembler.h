@@ -49,6 +49,7 @@ namespace yas6502
         int warnings() const; 
         std::vector<Message> messages() const;
         const Image &image() const;
+        const std::vector<std::unique_ptr<ast::Node>> &program() const;
 
         void setProgram(std::vector<std::unique_ptr<ast::Node>> &&program);
 

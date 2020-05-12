@@ -131,8 +131,6 @@ namespace yas6502
             line
                 << std::setw(5) << line_ << " "
                 << std::setw(4) << std::hex << std::setfill('0') << std::uppercase << loc_
-                << "  "
-                << std::setw(4) << std::hex << std::setfill('0') << std::uppercase << nextLoc_
                 << "  ";
 
             const int MAX_BYTES = 5;

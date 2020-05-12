@@ -21,37 +21,84 @@
  **/
 #include "assembler.h"
 
+#include "ast.h"
 #include "except.h"
 #include "utility.h"
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
+#include <unistd.h>
+
 using std::cerr;
 using std::endl;
 using std::ofstream;
 using std::string;
+using std::unique_ptr;
+using std::vector;
 
 using ss = std::stringstream;
 
+using yas6502::Assembler;
+using yas6502::Image;
+using yas6502::Message;
+
+namespace ast = yas6502::ast;
+
 namespace
 {
-    void showErrors(yas6502::Assembler &asmb);
-    void writeObjectFile(const std::string &fn, const yas6502::Image &image);
+    void usage();
+    void showErrors(Assembler &asmb);
+    void writeObjectFile(const string &fn, const Image &image);
+    void writeListingFile(const string &fn, const vector<unique_ptr<ast::Node>> &program, const Image &image);
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2) {
-        cerr << "yas6502: filename" << endl;
-        return 1;
+    bool listing = false;
+    string listingFile = "";
+    string objectFile = "";
+    int ch;
+
+    while ((ch = getopt(argc, argv, "Ll:o:")) != -1) {
+        switch (ch) {
+        case 'L':
+            listing = true;
+            break;
+
+        case 'l':
+            listing = true;
+            listingFile = string{ optarg };
+            break;
+
+        case 'o':
+            objectFile = string{ optarg };
+            break;
+
+        default:
+            usage();
+        }      
     }
-    yas6502::Assembler asmb{};
+
+    if (optind >= argc) {
+        usage();
+    }
+
+    string sourceFile{ argv[optind] };
+    if (listing && listingFile.empty()) {
+        listingFile = yas6502::replaceOrAppendExtension(sourceFile, "lst");
+    }
+
+    if (objectFile.empty()) {
+        objectFile = yas6502::replaceOrAppendExtension(sourceFile, "o");
+    }
+
+    Assembler asmb{};
 
     try {
-        string sourceFile{ argv[1] };
         asmb.assemble(sourceFile);
         
         if (asmb.errors() || asmb.warnings()) {
@@ -62,7 +109,10 @@ int main(int argc, char *argv[])
             }
         }
 
-        writeObjectFile(yas6502::replaceOrAppendExtension(sourceFile, "o"), asmb.image());        
+        writeObjectFile(objectFile, asmb.image());        
+        if (listing) {
+            writeListingFile(listingFile, asmb.program(), asmb.image());
+        }
     } catch (yas6502::Error &ex) {
         cerr << ex.message() << endl;
     }
@@ -71,11 +121,22 @@ int main(int argc, char *argv[])
 namespace 
 {
     /**
+     * Print usage and exit
+     */
+    void usage()
+    {
+        cerr
+            << "yas6502: [-L] [-l listing-file] [-o object-file] source-file"
+            << endl;
+        exit(1);
+    }
+
+    /**
      * Print errors to stderr
      */
-    void showErrors(yas6502::Assembler &asmb)
+    void showErrors(Assembler &asmb)
     {
-        for (yas6502::Message message : asmb.messages()) {
+        for (Message message : asmb.messages()) {
             cerr
                 << std::setw(5) << message.line() << ": "
                 << (message.warning() ? "Warning" : "Error")
@@ -93,7 +154,7 @@ namespace
     /**
      * Write a simple object file format.
      */
-    void writeObjectFile(const std::string &fn, const yas6502::Image &image)
+    void writeObjectFile(const string &fn, const Image &image)
     {
         ofstream out{ fn };
         if (!out) {
@@ -135,6 +196,31 @@ namespace
             }
 
             last = addr;
+        }
+    }
+
+    void writeListingFile(const string &fn, const vector<unique_ptr<ast::Node>> &program, const Image &image)
+    {
+        ofstream out{ fn };
+        if (!out) {
+            ss err{};
+            err
+                << "Could not open listing file `"
+                << fn
+                << "' for write.";
+            throw yas6502::Error{ err.str() };
+        }
+        
+        int last = 0;
+        for (const auto &stmt : program) {
+            // The assembler doesn't save blank lines with an empty AST node,
+            // so put them back in for proper listing format.
+            //
+            for (; last < stmt->line() - 1; last++) {
+                out << std::setw(5) << last << endl;
+            }
+            out << stmt->str(image) << endl;
+            last = stmt->line();
         }
     }
 }

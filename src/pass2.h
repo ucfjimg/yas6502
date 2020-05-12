@@ -37,7 +37,7 @@ namespace yas6502
     class Pass2 : public Pass
     {
     public:
-        Pass2(SymbolTable &symtab, const OpcodeMap &opcodes);
+        Pass2(SymbolTable &symtab, const opcodes::OpcodeMap &opcodes);
         void pass2(std::vector<std::unique_ptr<ast::Node>> &ast);
         
         const std::array<int, 65536> &image() const;

@@ -51,11 +51,11 @@ namespace yas6502
     class Pass
     {
     public:
-        Pass(SymbolTable &symtab, const OpcodeMap &opcodes);
+        Pass(SymbolTable &symtab, const opcodes::OpcodeMap &opcodes);
         virtual ~Pass();
 
         SymbolTable &symtab();
-        std::unique_ptr<Opcode> findOpcode(const std::string &op);
+        std::unique_ptr<opcodes::Opcode> findOpcode(const std::string &op);
 
         int loc() const;
         void setLoc(int loc);
@@ -68,7 +68,7 @@ namespace yas6502
 
     protected:
         SymbolTable &symtab_;
-        const OpcodeMap &opcodes_;
+        const opcodes::OpcodeMap &opcodes_;
         int loc_;
         int errors_;
         int warnings_;

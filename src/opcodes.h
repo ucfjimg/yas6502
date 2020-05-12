@@ -27,55 +27,84 @@
 
 namespace yas6502
 {
-    class InstructionEncoding
+    namespace opcodes
     {
-    public:
-        InstructionEncoding(unsigned opcode);
-        InstructionEncoding &setUndocumented();
-        InstructionEncoding &setUnstable();
-        InstructionEncoding &setClocks(int clocks);
-        InstructionEncoding &setExtraClocks();
+        class Encoding
+        {
+        public:
+            Encoding();
+            Encoding(unsigned opcode);
+            Encoding &setUndocumented();
+            Encoding &setUnstable();
+            Encoding &setClocks(int clocks);
+            Encoding &setExtraClocks();
 
-        bool undocumented() const;
-        bool unstable() const;
-        int clocks() const;
-        bool extraClocks() const;
+            bool undocumented() const;
+            bool unstable() const;
+            int clocks() const;
+            bool extraClocks() const;
 
-    private:
-        unsigned opcode_;
-        unsigned clocks_;
-        bool undocumented_;
-        bool unstable_;
-        bool extraClocks_;
-    };
+        private:
+            unsigned opcode_;
+            unsigned clocks_;
+            bool undocumented_;
+            bool unstable_;
+            bool extraClocks_;
+        };
 
-    struct Opcode
-    {
-        bool undocumented;
-        bool unstable;
+        enum class AddrMode
+        {
+            Accumulator,
+            Immediate,
+            Implied,
+            ZeroPageX,
+            ZeroPageY,
+            Absolute,
+            AbsoluteX,
+            AbsuloteY,
+            Indirect,
+            IndirectX,
+            IndirectY,
+            Relative,
+        };
 
-        int accumulator;
-        int immediate;
-        int implied;
-        int zeroPage;
-        int zeroPageX;
-        int zeroPageY;
-        int absolute;
-        int absoluteX;
-        int absoluteY;
-        int indirect;
-        int indirectX;
-        int indirectY;
-        int relative;
+        class Instruction
+        {
+        public:
+            Instruction &addEncoding(AddrMode mode, Encoding &&encoding);
 
-        Opcode();
-    };
+        private:
+            std::map<AddrMode, Encoding> encodings_;
+        };
 
-    using OpcodeMap = std::map<std::string, Opcode>;
 
-    extern OpcodeMap makeOpcodeMap();
-};
+        struct Opcode
+        {
+            bool undocumented;
+            bool unstable;
 
+            int accumulator;
+            int immediate;
+            int implied;
+            int zeroPage;
+            int zeroPageX;
+            int zeroPageY;
+            int absolute;
+            int absoluteX;
+            int absoluteY;
+            int indirect;
+            int indirectX;
+            int indirectY;
+            int relative;
+
+            Opcode();
+        };
+
+        using OpcodeMap = std::map<std::string, Opcode>;
+
+        extern OpcodeMap makeOpcodeMap();
+    }
+}
 
 #endif
 

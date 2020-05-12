@@ -47,7 +47,7 @@ namespace yas6502
     /**
      * Constructor
      */
-    Pass1::Pass1(SymbolTable &symtab, const OpcodeMap &opcodes)
+    Pass1::Pass1(SymbolTable &symtab, const opcodes::OpcodeMap &opcodes)
         : Pass(symtab, opcodes)
     {
     }

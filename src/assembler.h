@@ -56,10 +56,10 @@ namespace yas6502
         yy::location &loc();
         const yy::location &loc() const;
 
-        const Opcode *opcode(const std::string &op) const;
+        const opcodes::Opcode *opcode(const std::string &op) const;
 
     private:
-        OpcodeMap opcodes_;
+        opcodes::OpcodeMap opcodes_;
 
         yy::location location_;
         std::string file_;

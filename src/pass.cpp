@@ -71,7 +71,7 @@ namespace yas6502
     /**
      * Constructor
      */
-    Pass::Pass(SymbolTable &symtab, const OpcodeMap &opcodes)
+    Pass::Pass(SymbolTable &symtab, const opcodes::OpcodeMap &opcodes)
         : symtab_(symtab)
         , opcodes_(opcodes)
         , loc_(0)
@@ -127,14 +127,14 @@ namespace yas6502
      * Look up an opcode in the opcode map. Case insensitive.
      * Returns nullptr if there is no such opcode.
      */
-    unique_ptr<Opcode> Pass::findOpcode(const string &op)
+    unique_ptr<opcodes::Opcode> Pass::findOpcode(const string &op)
     {
         auto it = opcodes_.find(toUpper(op));
         if (it == opcodes_.end()) {
             return nullptr;
         }
 
-        return make_unique<Opcode>( it->second ); 
+        return make_unique<opcodes::Opcode>( it->second ); 
     }
 
     /**

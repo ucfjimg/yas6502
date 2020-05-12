@@ -40,7 +40,7 @@ namespace yas6502
     class Pass1 : public Pass
     {
     public:
-        Pass1(SymbolTable &symtab, const OpcodeMap &opcodes);
+        Pass1(SymbolTable &symtab, const opcodes::OpcodeMap &opcodes);
         void pass1(std::vector<std::unique_ptr<ast::Node>> &ast);
     };
 }

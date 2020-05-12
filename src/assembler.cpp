@@ -53,7 +53,7 @@ namespace yas6502
     Assembler::Assembler()
         : trace_(false)
     {
-        opcodes_ = makeOpcodeMap();
+        opcodes_ = opcodes::makeOpcodeMap();
     }
 
     /**
@@ -76,7 +76,7 @@ namespace yas6502
      * Return a pointer to an Opcode struct for the given mnemonic, or
      * nullptr if there is no instruction with that name.
      */
-    const Opcode *Assembler::opcode(const string &op) const
+    const opcodes::Opcode *Assembler::opcode(const string &op) const
     {
         auto it = opcodes_.find(op);
         if (it != opcodes_.end()) {

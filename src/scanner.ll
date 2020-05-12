@@ -126,7 +126,7 @@ symtype make_IdOrOpcode(const std::string &s, const yas6502::Assembler &asmb)
     std::string upperS = s;
     std::transform(upperS.begin(), upperS.end(), upperS.begin(), ::toupper);
 
-    const yas6502::Opcode *opc = asmb.opcode(upperS); 
+    const yas6502::opcodes::Opcode *opc = asmb.opcode(upperS); 
 
     if (opc != nullptr) {
         return yy::parser::make_OPCODE(s, asmb.loc());

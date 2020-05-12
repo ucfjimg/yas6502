@@ -61,7 +61,7 @@ namespace yas6502
             int loc() const;
             virtual int length() const;
 
-            std::string str(const Image &image);
+            std::vector<std::string> str(const Image &image);
 
             virtual void pass1(Pass1 &pass1);
             virtual void pass2(Pass2 &pass2);

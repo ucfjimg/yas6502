@@ -219,7 +219,9 @@ namespace
             for (; last < stmt->line() - 1; last++) {
                 out << std::setw(5) << last << endl;
             }
-            out << stmt->str(image) << endl;
+            for (string line : stmt->str(image)) {
+                out << line << endl;
+            }
             last = stmt->line();
         }
     }

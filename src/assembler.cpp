@@ -52,6 +52,7 @@ namespace yas6502
      */
     Assembler::Assembler()
         : trace_(false)
+        , source_(nullptr)
     {
         opcodes_ = opcodes::makeOpcodeMap();
     }
@@ -84,37 +85,31 @@ namespace yas6502
     /**
      * Run the parser
      */
-    void Assembler::parse()
+    void Assembler::parse(vector<char> &source)
     {
         location_.initialize(&file_);
 
         yy_flex_debug = trace_;
 
-        yyin = fopen(file_.c_str(), "r");
-        if (yyin == nullptr) {
-            ss err{};
-            err
-                << "Could not open `" << file_ << "': " << strerror(errno) << std::endl;
-            throw Error{ err.str() };
-        }
-
+        source_ = source.data();
         yy::parser parse(*this);
+
         parse.set_debug_level(trace_);
         parse();
-
-        fclose(yyin);
-        yyin = nullptr;
+        source_ = nullptr;
     }
 
     /**
      * Parse and assemble the given file.
      */
-    void Assembler::assemble(const string &filename)
+    void Assembler::assemble(const string &filename, vector<char> &source)
     {
         file_ = filename;
         program_.clear();
 
-        parse();
+        source.push_back(0);
+        source.push_back(0);
+        parse(source);
 
         symtab_.clear();
         pass1_ = make_unique<Pass1>( symtab_, opcodes_ );
@@ -199,6 +194,14 @@ namespace yas6502
     const SymbolTable &Assembler::symtab() const
     {
         return symtab_;
+    }
+
+    /**
+     * Return a buffer containing the source code
+     */
+    char *Assembler::source()
+    {
+        return source_;
     }
 
     /**

@@ -38,6 +38,7 @@
 
 using std::cerr;
 using std::endl;
+using std::ifstream;
 using std::map;
 using std::ofstream;
 using std::string;
@@ -60,6 +61,7 @@ namespace
     };
 
     void usage();
+    vector<char> readInputBuffer(const std::string &filename);
     void showErrors(Assembler &asmb);
     void writeObjectFile(const string &fn, const Image &image);
     void writeListingFile(const string &fn, const Assembler &asmb);
@@ -112,7 +114,9 @@ int main(int argc, char *argv[])
     Assembler asmb{};
 
     try {
-        asmb.assemble(sourceFile);
+        vector<char> source = readInputBuffer(sourceFile);
+
+        asmb.assemble(sourceFile, source);
         
         if (asmb.errors() || asmb.warnings()) {
             showErrors(asmb);
@@ -146,6 +150,37 @@ namespace
             << "yas6502: [-L] [-l listing-file] [-o object-file] source-file"
             << endl;
         exit(1);
+    }
+    
+    vector<char> readInputBuffer(const std::string &filename)
+    {
+        ifstream inp{ filename, std::ios::in | std::ios::binary };
+        if (!inp) {
+            ss err{};
+            err
+                << "Could not open source file `"
+                << filename
+                << "' for read.";
+            throw yas6502::Error{ err.str() };
+        }
+
+        inp.seekg(0, inp.end);
+        auto size = inp.tellg();
+        inp.seekg(0);
+
+        vector<char> source{};
+        source.resize(size);
+        inp.read(source.data(), size);
+        if (!inp) {
+            ss err{};
+            err
+                << "Failed to read entire input file `"
+                << filename
+                << "'.";
+            throw yas6502::Error{ err.str() };
+        }
+        
+        return source;
     }
 
     /**

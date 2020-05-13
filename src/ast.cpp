@@ -42,6 +42,7 @@ namespace yas6502
         Node::Node()
             : line_(0)
             , loc_(0)
+            , nextLoc_(0)
         {
         }
 

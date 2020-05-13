@@ -42,9 +42,17 @@ using loctype = yy::parser::location_type;
 
 const int DEC = 10;
 const int HEX = 16;
+
+void setInput(yas6502::Assembler &asmb);
+#define YY_USER_INIT setInput(asmb)
+
+namespace
+{
+    YY_BUFFER_STATE buffer_state;
+}
 %}
 
-%option noyywrap nounput noinput batch debug caseless
+%option noyywrap nounput noinput batch debug caseless 
 
 %{
 symtype make_NUMBER(const std::string &s, int base, const loctype &loc);
@@ -132,3 +140,11 @@ symtype make_IdOrOpcode(const std::string &s, const yas6502::Assembler &asmb)
     return yy::parser::make_IDENTIFIER(s, asmb.loc());
 }
 
+void setInput(yas6502::Assembler &asmb)
+{
+    char *src = asmb.source();
+    int len = strlen(src);
+
+    // TODO find the right place to clean this up.
+    buffer_state = yy_scan_buffer(src, len+2);
+}

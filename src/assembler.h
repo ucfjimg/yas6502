@@ -43,7 +43,7 @@ namespace yas6502
         Assembler();
 
         void setTrace();
-        void assemble(const std::string &file);
+        void assemble(const std::string &filename, std::vector<char> &source);
 
         int errors() const;
         int warnings() const; 
@@ -51,7 +51,14 @@ namespace yas6502
         const Image &image() const;
         const std::vector<std::unique_ptr<ast::Node>> &program() const;
         const SymbolTable &symtab() const;
+        
+        // This is only valid during parse() and is to communicate the
+        // source to the scanner. Note that the scanner WILL write to
+        // the buffer.
+        char *source();
 
+        // The parser calls this at the end of parsing to give back
+        // the AST.
         void setProgram(std::vector<std::unique_ptr<ast::Node>> &&program);
 
         yy::location &loc();
@@ -62,8 +69,9 @@ namespace yas6502
     private:
         opcodes::OpcodeMap opcodes_;
 
-        yy::location location_;
+        char *source_;
         std::string file_;
+        yy::location location_;
         bool trace_;
 
         SymbolTable symtab_;
@@ -72,7 +80,7 @@ namespace yas6502
 
         std::vector<std::unique_ptr<ast::Node>> program_;
 
-        void parse();
+        void parse(std::vector<char> &source);
     };
 }
 

@@ -59,7 +59,7 @@ symtype make_NUMBER(const std::string &s, int base, const loctype &loc);
 symtype make_IdOrOpcode(const std::string &s, const yas6502::Assembler &asmb);
 %}
 
-id       [a-z_][a-z_0-9]+
+id       [a-z_][a-z_0-9]*
 int      [0-9]+
 hexint   [0-9a-f]+
 blank    [ \r\t]

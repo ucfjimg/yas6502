@@ -22,6 +22,7 @@
 #include "symtab.h"
 
 #include "except.h"
+#include "utility.h"
 
 #include <algorithm>
 #include <cctype>
@@ -57,10 +58,7 @@ namespace yas6502
      */
     Symbol SymbolTable::lookup(const string& name)
     {
-        string uname = name;
-        std::transform(uname.begin(), uname.end(), uname.begin(), toupper);
-
-        return symbols_[uname];
+        return symbols_[toUpper(name)];
     }
     
     /**
@@ -68,22 +66,21 @@ namespace yas6502
      */
     void SymbolTable::setValue(const std::string &name, int value)
     {
-        string uname = name;
-        std::transform(uname.begin(), uname.end(), uname.begin(), toupper);
+        string uname = toUpper(name);
 
-        Symbol oldValue = symbols_[name];
+        Symbol oldValue = symbols_[uname];
         if (oldValue.defined && oldValue.value != value) {
             ss err{};
 
             err
                 << "Cannot redefine symbol `" 
-                << name
+                << uname
                 << "'.";
 
             throw Error{ err.str() };
         }
 
-        Symbol &sym = symbols_[name];
+        Symbol &sym = symbols_[uname];
         sym.defined = true;
         sym.value = value;
     }

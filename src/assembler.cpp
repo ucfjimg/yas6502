@@ -25,6 +25,7 @@
 #include "opcodes.h"
 #include "pass1.h"
 #include "pass2.h"
+#include "scanner.h"
 #include "symtab.h"
 
 #include <algorithm>
@@ -96,6 +97,7 @@ namespace yas6502
 
         parse.set_debug_level(trace_);
         parse();
+        cleanUpScanner();
         source_ = nullptr;
     }
 

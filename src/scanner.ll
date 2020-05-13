@@ -23,6 +23,8 @@
 
 #include "assembler.h"
 #include "opcodes.h"
+#include "scanner.h"
+#include "utility.h"
 
 #include "parser.tab.hpp"
 
@@ -133,8 +135,7 @@ symtype make_NUMBER(const std::string &s, int base, const loctype &loc)
 
 symtype make_IdOrOpcode(const std::string &s, const yas6502::Assembler &asmb)
 {
-    std::string upperS = s;
-    std::transform(upperS.begin(), upperS.end(), upperS.begin(), ::toupper);
+    std::string upperS = yas6502::toUpper(s);
 
     if (asmb.isOpcode(upperS)) {
         return yy::parser::make_OPCODE(s, asmb.loc());
@@ -149,4 +150,12 @@ void setInput(yas6502::Assembler &asmb)
 
     // TODO find the right place to clean this up.
     buffer_state = yy_scan_buffer(src, len+2);
+}
+
+namespace yas6502
+{
+    void cleanUpScanner()
+    {
+        yy_delete_buffer(buffer_state);
+    }
 }

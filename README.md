@@ -41,7 +41,7 @@ Expressions can currently only use the four algebraic operators +, -, * and /.\,
 
 yas6502 is meant for single-file programs. There is no support for external linkage. As a result, object
 files are very simple and just place code and data directly in memory at an absolute address. This means
-they are very amenable to immediate conversion into any binary ROM format. There are only two thigns in
+they are very amenable to immediate conversion into any binary ROM format. There are only two things in
 the object format: an address of the form @XXXX, where XXXX is a 16-bit address in hex, and XX, where 
 XX is an 8-bit data byte in hex. All entries are white space delimited. Here is a simple object file which 
 is a typical ROM start: SEI followed by CLD:

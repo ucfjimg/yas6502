@@ -53,9 +53,8 @@ namespace yas6502
     }
 
     /**
-     * Execute pass2. This pass just computes location counter values,
-     * defines symbols, and reports basic errors. Actual code generation
-     * happens in pass 2.
+     * Execute pass2. This pass verifies that all symbols are fully defined 
+     * and builds the in-memory object image.
      */
     void Pass2::pass2(vector<unique_ptr<ast::Node>> &ast)
     {

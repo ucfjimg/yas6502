@@ -234,15 +234,15 @@ namespace yas6502
                 break;
 
             case AddrMode::Indirect:
-                line << '(' << address_->str() << ')';
+                line << '[' << address_->str() << ']';
                 break;
 
             case AddrMode::IndirectX:
-                line << '(' << address_->str() << "),X";
+                line << '[' << address_->str() << "],X";
                 break;
 
             case AddrMode::IndirectY:
-                line << '(' << address_->str() << "),Y";
+                line << '[' << address_->str() << "],Y";
                 break;
             }
 
@@ -310,7 +310,9 @@ namespace yas6502
         {
             ss line{};
 
-            line << '$' << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << value_;
+            int width = (value_ < 0x0100) ? 2 : 4;
+
+            line << '$' << std::hex << std::uppercase << std::setfill('0') << std::setw(width) << value_;
             return line.str();
         }
     }

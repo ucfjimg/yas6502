@@ -89,6 +89,8 @@ using ast::NoopNode;
   ACCUM     "a"
   LPAREN    "("
   RPAREN    ")"
+  LBRACKET  "["
+  RBRACKET  "]"
   PLUS      "+"
   MINUS     "-"
   TIMES     "*"
@@ -103,6 +105,7 @@ using ast::NoopNode;
 
 %nterm <yas6502::ast::ExpressionPtr> expression
 %nterm <yas6502::ast::IndexReg> index
+%nterm <yas6502::ast::IndexReg> yindex
 %nterm <yas6502::ast::AddressPtr> addressing-mode
 %nterm <std::vector<yas6502::ast::ExpressionPtr>> data-list;
 %nterm <yas6502::ast::DataSize> data-decl;
@@ -178,12 +181,16 @@ addressing-mode:
     | "#" expression              { $$ = make_unique<Address>( ast::AddrMode::Immediate, std::move( $2 ) ); } 
     | "a"                         { $$ = make_unique<Address>( ast::AddrMode::Accumulator, nullptr ); }
     | expression index            { $$ = make_unique<Address>( ast::address( $2 ), std::move( $1 ) ); }
-    | "(" expression ")" index    { $$ = make_unique<Address>( ast::indirect( $4 ), std::move( $2 ) ); }
-    | "(" expression  ",x" ")"    { $$ = make_unique<Address>( ast::AddrMode::IndirectX, std::move( $2 ) ); }
+    | "[" expression "]" yindex   { $$ = make_unique<Address>( ast::indirect( $4 ), std::move( $2 ) ); }
+    | "[" expression  ",x" "]"    { $$ = make_unique<Address>( ast::AddrMode::IndirectX, std::move( $2 ) ); }
 
 index:
      %empty { $$ = ast::IndexReg::None; }
      | ",x" { $$ = ast::IndexReg::X; }
+     | ",y" { $$ = ast::IndexReg::Y; }
+
+yindex:
+     %empty { $$ = ast::IndexReg::None; }
      | ",y" { $$ = ast::IndexReg::Y; }
 
 expression:
@@ -194,7 +201,7 @@ expression:
     | expression "-" expression   { $$ = make_unique<BinaryOp>( Operator::Sub, std::move( $1 ), std::move( $3 ) ); }
     | expression "*" expression   { $$ = make_unique<BinaryOp>( Operator::Mul, std::move( $1 ), std::move( $3 ) ); }
     | expression "/" expression   { $$ = make_unique<BinaryOp>( Operator::Div, std::move( $1 ), std::move( $3 ) ); }
-    | "<" expression ">"          { $$ = std::move( $2 ); }
+    | "(" expression ")"          { $$ = std::move( $2 ); $$->setParenthesized(); }
 
 %%
 

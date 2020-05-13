@@ -99,7 +99,7 @@ namespace yas6502
                    << "ORG expression must be fully defined in pass1, but contains undefined symbols '"
                    << concatSet(er.undefinedSymbols(), "', '")
                    << "'.";
-               throw Error{ err.str() };
+                pass1.pushMessage(Message{ false, line(), err.str() });
             }
 
             computedLoc_ = er.value();
@@ -128,6 +128,14 @@ namespace yas6502
         void InstructionNode::pass1(Pass1 &pass1)
         {
             Node::pass1(pass1);
+
+            if (address_->addressExpr() != nullptr && address_->addressExpr()->parenthesized()) {
+                pass1.pushMessage(Message{ 
+                    true, 
+                    line(), 
+                    "Top level expression is parenthesized, did you mean to use brackets for indirect addressing?"
+                });
+            }
 
             // for an instruction, we need to update the location
             // counter, but we also need to remember if we decided

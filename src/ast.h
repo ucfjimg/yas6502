@@ -226,10 +226,17 @@ namespace yas6502
         class Expression
         {
         public:
+            Expression();
             virtual ~Expression();
+
+            bool parenthesized() const;
+            void setParenthesized();
 
             virtual std::string str() = 0;
             virtual ExprResult eval(SymbolTable &symtab) = 0;
+
+        private:
+            bool parenthesized_;
         };
 
         class Address

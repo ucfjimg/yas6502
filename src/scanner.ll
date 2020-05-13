@@ -91,6 +91,8 @@ word       return yy::parser::make_WORD(asmb.loc());
 "a"        return yy::parser::make_ACCUM(asmb.loc());
 "("        return yy::parser::make_LPAREN(asmb.loc());
 ")"        return yy::parser::make_RPAREN(asmb.loc());
+"["        return yy::parser::make_LBRACKET(asmb.loc());
+"]"        return yy::parser::make_RBRACKET(asmb.loc());
 "+"        return yy::parser::make_PLUS(asmb.loc());
 "-"        return yy::parser::make_MINUS(asmb.loc());
 "*"        return yy::parser::make_TIMES(asmb.loc());

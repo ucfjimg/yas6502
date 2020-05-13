@@ -174,10 +174,34 @@ namespace yas6502
         }
 
         /**
+         * Base class expression
+         */
+        Expression::Expression()
+            : parenthesized_(false)
+        {
+        }
+
+        /**
          * Base class destructor
          */
         Expression::~Expression()
         {
+        }
+
+        /**
+         * Set that this expression is parenthesized
+         */
+        void Expression::setParenthesized()
+        {
+            parenthesized_ = true;
+        }
+
+        /** 
+         * Check if this expression is parenthesized
+         */
+        bool Expression::parenthesized() const
+        {
+            return parenthesized_;
         }
 
         /**

@@ -22,6 +22,7 @@
 #include "ast.h"
 
 #include "except.h"
+#include "pass.h"
 #include "symtab.h"
 
 #include <algorithm>
@@ -34,6 +35,7 @@ using std::string;
 using yas6502::ast::BinaryOp;
 using yas6502::ast::ConstantExpression;
 using yas6502::ast::SymbolExpression;
+using yas6502::ast::LocationExpression;
 using yas6502::ast::ExprResult;
 using yas6502::ast::Operator;
 using yas6502::ast::UnaryOp;
@@ -84,9 +86,9 @@ namespace yas6502
     /**
      * Evaluate a unary operation
      */
-    ExprResult UnaryOp::eval(SymbolTable &symtab)
+    ExprResult UnaryOp::eval(Pass &pass)
     {
-        ExprResult op = operand_->eval(symtab);
+        ExprResult op = operand_->eval(pass);
         if (!op.defined()) {
             return op;
         }
@@ -103,10 +105,10 @@ namespace yas6502
     /**
      * Evaluate a binary operation
      */
-    ExprResult BinaryOp::eval(SymbolTable &symtab)
+    ExprResult BinaryOp::eval(Pass &pass)
     {
-        ExprResult left = left_->eval(symtab);
-        ExprResult right = right_->eval(symtab);
+        ExprResult left = left_->eval(pass);
+        ExprResult right = right_->eval(pass);
         if (!left.defined() || !right.defined()) {
             set<string> undefs{};
 
@@ -148,9 +150,9 @@ namespace yas6502
     /**
      * Evaluate a symbol expression
      */
-    ExprResult SymbolExpression::eval(SymbolTable &symtab)
+    ExprResult SymbolExpression::eval(Pass &pass)
     {
-        Symbol sym = symtab.lookup(symbol_);
+        Symbol sym = pass.symtab().lookup(symbol_);
         if (!sym.defined) {
             set<string> undefs{ symbol_ };
             return ExprResult{ std::move(undefs) };
@@ -162,8 +164,16 @@ namespace yas6502
     /**
      * Evaluate a constant expression
      */
-    ExprResult ConstantExpression::eval(SymbolTable &symtab)
+    ExprResult ConstantExpression::eval(Pass &pass)
     {
         return ExprResult{ value_ };
+    }
+
+    /** 
+     * The current value of the location counter
+     */
+    ExprResult LocationExpression::eval(Pass &pass)
+    {
+        return ExprResult{ pass.loc() };
     }
 }

@@ -92,7 +92,7 @@ namespace yas6502
         {
             Node::pass1(pass1);
 
-            ExprResult er = locExpr_->eval(pass1.symtab());
+            ExprResult er = locExpr_->eval(pass1);
             if (!er.defined()) {
                ss err{};
                err
@@ -115,7 +115,7 @@ namespace yas6502
 
             // It's ok for a symbol to not be fully defined in pass 1.
             // 
-            ExprResult er = value_->eval(pass1.symtab());
+            ExprResult er = value_->eval(pass1);
             if (!er.defined()) {
                 return;
             }
@@ -175,7 +175,7 @@ namespace yas6502
                 // and must have a fully defined operand that fits in
                 // one byte.
                 if (instr.hasEncoding(opcodes::AddrMode::ZeroPage)) {
-                    er = address_->addressExpr()->eval(pass1.symtab());
+                    er = address_->addressExpr()->eval(pass1);
                     if (er.defined() && er.value() >= 0 && er.value() <= 0xFF) {
                         size = 2;
                     }
@@ -195,7 +195,7 @@ namespace yas6502
                         (address_->mode() == AddrMode::AddressY && instr.hasEncoding(opcodes::AddrMode::ZeroPageY));
 
                     if (hasZeroPage) {
-                        er = address_->addressExpr()->eval(pass1.symtab());
+                        er = address_->addressExpr()->eval(pass1);
                         if (er.defined() && er.value() >= 0 && er.value() <= 0xFF) {
                             size = 2;
                         }

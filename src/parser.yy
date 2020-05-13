@@ -60,6 +60,7 @@ namespace ast = yas6502::ast;
 using ast::Expression;
 using ast::SymbolExpression;
 using ast::ConstantExpression;
+using ast::LocationExpression;
 using ast::Operator;
 using ast::BinaryOp;
 using ast::UnaryOp;
@@ -96,6 +97,7 @@ using ast::NoopNode;
   TIMES     "*"
   DIVIDE    "/"
   COMMA     ","
+  DOT       "."
   ;
 
 %token <std::string> OPCODE "opcode" 
@@ -196,6 +198,7 @@ yindex:
 expression:
     NUMBER                        { $$ = make_unique<ConstantExpression>( $1 ); }
     | IDENTIFIER                  { $$ = make_unique<SymbolExpression>( $1 ); }
+    | "."                         { $$ = make_unique<LocationExpression>(); }
     | "-" expression              { $$ = make_unique<UnaryOp>( Operator::Neg, std::move( $2 ) ); }
     | expression "+" expression   { $$ = make_unique<BinaryOp>( Operator::Add, std::move( $1 ), std::move( $3 ) ); }
     | expression "-" expression   { $$ = make_unique<BinaryOp>( Operator::Sub, std::move( $1 ), std::move( $3 ) ); }

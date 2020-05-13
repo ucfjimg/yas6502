@@ -99,6 +99,7 @@ word       return yy::parser::make_WORD(asmb.loc());
 "-"        return yy::parser::make_MINUS(asmb.loc());
 "*"        return yy::parser::make_TIMES(asmb.loc());
 "/"        return yy::parser::make_DIVIDE(asmb.loc());
+"."        return yy::parser::make_DOT(asmb.loc());
 
 
 \${hexint} return make_NUMBER(yytext+1, HEX, asmb.loc());

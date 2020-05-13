@@ -315,5 +315,13 @@ namespace yas6502
             line << '$' << std::hex << std::uppercase << std::setfill('0') << std::setw(width) << value_;
             return line.str();
         }
+
+        /**
+         * Convert the location counter symbol to a string
+         */
+        string LocationExpression::str()
+        {
+            return ".";
+        }
     }
 }

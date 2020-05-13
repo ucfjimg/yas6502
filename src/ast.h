@@ -31,7 +31,7 @@
 
 namespace yas6502
 {
-    class SymbolTable;
+    class Pass;
     class Pass1;
     class Pass2;
 
@@ -233,7 +233,7 @@ namespace yas6502
             void setParenthesized();
 
             virtual std::string str() = 0;
-            virtual ExprResult eval(SymbolTable &symtab) = 0;
+            virtual ExprResult eval(Pass &pass) = 0;
 
         private:
             bool parenthesized_;
@@ -261,7 +261,7 @@ namespace yas6502
             UnaryOp(Operator op, ExpressionPtr operand);
 
             virtual std::string str() override;
-            virtual ExprResult eval(SymbolTable &symtab) override;
+            virtual ExprResult eval(Pass &pass) override;
 
         private:
             Operator op_;
@@ -274,7 +274,7 @@ namespace yas6502
             BinaryOp(Operator op, ExpressionPtr left, ExpressionPtr right);
 
             virtual std::string str() override;
-            virtual ExprResult eval(SymbolTable &symtab) override;
+            virtual ExprResult eval(Pass &pass) override;
 
         private:
             Operator op_;
@@ -288,7 +288,7 @@ namespace yas6502
             SymbolExpression(const std::string &symbol);
 
             virtual std::string str() override;
-            virtual ExprResult eval(SymbolTable &symtab) override;
+            virtual ExprResult eval(Pass &pass) override;
 
         private:
             const std::string symbol_;
@@ -300,10 +300,17 @@ namespace yas6502
             ConstantExpression(int value);
 
             virtual std::string str() override;
-            virtual ExprResult eval(SymbolTable &symtab) override;
+            virtual ExprResult eval(Pass &pass) override;
 
         private:
             int value_;
+        };
+
+        class LocationExpression : public Expression
+        {
+        public:
+            virtual std::string str() override;
+            virtual ExprResult eval(Pass &pass) override;
         };
     }
 }

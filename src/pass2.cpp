@@ -107,7 +107,7 @@ namespace yas6502
      */
     int Pass2::evalCheckDefined(ast::Expression &expr)
     {
-        ast::ExprResult er = expr.eval(symtab_);
+        ast::ExprResult er = expr.eval(*this);
         if (!er.defined()) {
             // All symbols must be fully defined in pass 2.
             ss err{};

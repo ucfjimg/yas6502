@@ -37,6 +37,7 @@
 #include <unistd.h>
 
 using std::cerr;
+using std::cout;
 using std::endl;
 using std::ifstream;
 using std::map;
@@ -78,7 +79,7 @@ int main(int argc, char *argv[])
     string objectFile = "";
     int ch;
 
-    while ((ch = getopt(argc, argv, "Ll:o:")) != -1) {
+    while ((ch = getopt(argc, argv, "Ll:o:v")) != -1) {
         switch (ch) {
         case 'L':
             listing = true;
@@ -92,6 +93,16 @@ int main(int argc, char *argv[])
         case 'o':
             objectFile = string{ optarg };
             break;
+
+        case 'v':
+            cout 
+                << "yas6502 version " 
+                << YAS6502_VMAJOR 
+                << "."
+                << std::setfill('0') 
+                << std::setw(2) << YAS6502_VMINOR
+                << endl;
+            return 0;
 
         default:
             usage();

@@ -19,7 +19,7 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  **/
-#include "assembler.h"
+#include "parser.h"
 
 #include "except.h"
 #include "opcodes.h"
@@ -27,6 +27,7 @@
 #include "pass2.h"
 #include "scanner.h"
 #include "symtab.h"
+
 
 #include <algorithm>
 #include <cstring>

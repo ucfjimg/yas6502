@@ -48,7 +48,7 @@
 %define parse.lac full
 
 %code {
-#include "assembler.h"
+#include "parser.h"
 #include "ast.h"
 using std::cerr;
 using std::endl;

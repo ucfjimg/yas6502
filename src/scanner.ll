@@ -21,7 +21,7 @@
  **/
 %{
 
-#include "assembler.h"
+#include "parser.h"
 #include "opcodes.h"
 #include "scanner.h"
 #include "utility.h"

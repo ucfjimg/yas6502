@@ -22,6 +22,9 @@
 #ifndef ASSEMBLER_H_
 #define ASSEMBLER_H_
 
+#define YAS6502_VMAJOR 0
+#define YAS6502_VMINOR 1
+
 #include "ast.h"
 #include "pass1.h"
 #include "pass2.h"
@@ -33,7 +36,8 @@
 #include <memory>
 #include <vector>
 
-#include "parser.tab.hpp"
+#include "location.hh"
+//#include "parser.tab.hpp"
 
 namespace yas6502
 {
@@ -83,10 +87,6 @@ namespace yas6502
         void parse(std::vector<char> &source);
     };
 }
-
-# define YY_DECL yy::parser::symbol_type yylex(yas6502::Assembler &asmb)
-
-YY_DECL;
 
 #endif
 

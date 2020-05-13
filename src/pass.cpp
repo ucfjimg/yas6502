@@ -40,6 +40,15 @@ namespace yas6502
     /**
      * Constructor
      */
+    Message::Message()
+        : warning_(false)
+        , line_(0)
+    {
+    }
+
+    /**
+     * Constructor
+     */
     Message::Message(bool warning, int line, const std::string &message)
         : warning_(warning)
         , line_(line)

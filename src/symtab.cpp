@@ -87,4 +87,21 @@ namespace yas6502
         sym.defined = true;
         sym.value = value;
     }
+
+    /**
+     * Return an iterator to the start of the symbol table
+     */ 
+    SymbolTable::SymbolMapIter SymbolTable::begin() const
+    {
+        return symbols_.begin();
+    }
+
+    /**
+     * Return an iterator to just past the end of the symbol
+     * table
+     */
+    SymbolTable::SymbolMapIter SymbolTable::end() const
+    {
+        return symbols_.end();
+    }
 }

@@ -42,8 +42,14 @@ namespace yas6502
         Symbol lookup(const std::string &name);
         void setValue(const std::string &name, int value);
 
+        using SymbolMap = std::map<std::string, Symbol>;
+        using SymbolMapIter = SymbolMap::const_iterator;
+
+        SymbolMapIter begin() const;
+        SymbolMapIter end() const;
+ 
     private:
-        std::map<std::string, Symbol> symbols_;
+        SymbolMap symbols_;
     };
 }
 

@@ -36,6 +36,7 @@ namespace yas6502
     class Message 
     {
     public:
+        Message();
         Message(bool warning, int line, const std::string &message);
 
         bool warning() const;

@@ -50,6 +50,7 @@ namespace yas6502
         std::vector<Message> messages() const;
         const Image &image() const;
         const std::vector<std::unique_ptr<ast::Node>> &program() const;
+        const SymbolTable &symtab() const;
 
         void setProgram(std::vector<std::unique_ptr<ast::Node>> &&program);
 

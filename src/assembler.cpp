@@ -192,6 +192,15 @@ namespace yas6502
         return program_;
     }
 
+
+    /**
+     * Return the symbol table
+     */
+    const SymbolTable &Assembler::symtab() const
+    {
+        return symtab_;
+    }
+
     /**
      * Called by the parser to set the program when parsing is done.
      */

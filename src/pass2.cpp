@@ -216,7 +216,7 @@ namespace yas6502
                     err 
                         << "Instruction `"
                         << instr.mnemonic()
-                        << " has no "
+                        << "' has no "
                         << modeName(mode)
                         << " mode.";
                     throw Error{ err.str() };

@@ -23,18 +23,22 @@
 
 #include "ast.h"
 #include "except.h"
+#include "symtab.h"
 #include "utility.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <sstream>
 
 #include <unistd.h>
 
 using std::cerr;
 using std::endl;
+using std::map;
 using std::ofstream;
 using std::string;
 using std::unique_ptr;
@@ -50,10 +54,19 @@ namespace ast = yas6502::ast;
 
 namespace
 {
+    struct Symbol {
+        string name;
+        int value;
+    };
+
     void usage();
     void showErrors(Assembler &asmb);
     void writeObjectFile(const string &fn, const Image &image);
-    void writeListingFile(const string &fn, const vector<unique_ptr<ast::Node>> &program, const Image &image);
+    void writeListingFile(const string &fn, const Assembler &asmb);
+    void writeProgramLines(ofstream &out, const Assembler &asmb);
+    void writeErrors(ofstream &out, const Assembler &asmb);
+    void writeSymbolTable(ofstream &out, const Assembler &asmb);
+    void writeSymbols(ofstream &out, const std::vector<Symbol>& symbols, int maxLen, int perLine);
 }
 
 int main(int argc, char *argv[])
@@ -103,15 +116,19 @@ int main(int argc, char *argv[])
         
         if (asmb.errors() || asmb.warnings()) {
             showErrors(asmb);
-
-            if (asmb.errors()) {
-                return 1;
-            }
         }
 
-        writeObjectFile(objectFile, asmb.image());        
+        unlink(objectFile.c_str());
+        if (asmb.errors() == 0) {
+            writeObjectFile(objectFile, asmb.image());        
+        }
+        
         if (listing) {
-            writeListingFile(listingFile, asmb.program(), asmb.image());
+            writeListingFile(listingFile, asmb);
+        }
+
+        if (asmb.errors()) {
+            return 1;
         }
     } catch (yas6502::Error &ex) {
         cerr << ex.message() << endl;
@@ -199,7 +216,7 @@ namespace
         }
     }
 
-    void writeListingFile(const string &fn, const vector<unique_ptr<ast::Node>> &program, const Image &image)
+    void writeListingFile(const string &fn, const Assembler &asmb)
     {
         ofstream out{ fn };
         if (!out) {
@@ -210,7 +227,20 @@ namespace
                 << "' for write.";
             throw yas6502::Error{ err.str() };
         }
-        
+
+        writeProgramLines(out, asmb);
+        writeErrors(out, asmb);
+        writeSymbolTable(out, asmb);
+    }
+
+    /**
+     * Write out annotated program lines
+     */
+    void writeProgramLines(ofstream &out, const Assembler &asmb)
+    {
+        const vector<unique_ptr<ast::Node>> &program{ asmb.program() };
+        const Image &image{ asmb.image() };
+
         int last = 0;
         for (const auto &stmt : program) {
             // The assembler doesn't save blank lines with an empty AST node,
@@ -223,6 +253,80 @@ namespace
                 out << line << endl;
             }
             last = stmt->line();
+        }
+    }
+
+    /**
+     * Write out warnings and errors, if there are any
+     */
+    void writeErrors(ofstream &out, const Assembler &asmb)
+    {
+        if (!asmb.messages().empty()) {
+            out << endl << "Errors and Warnings" << endl;
+
+            for (const auto &msg : asmb.messages()) {
+                out
+                    << std::setw(5) << msg.line() << "  "
+                    << (msg.warning() ? "Warning" : "Error  ")
+                    << "  "
+                    << msg.message()
+                    << endl;
+            }
+        }
+    }
+
+    /**
+     * Write out the symbol table
+     */
+    void writeSymbolTable(ofstream &out, const Assembler &asmb)
+    {
+
+        vector<Symbol> symbols{};
+
+        string::size_type maxLen = 0;
+        for (const auto &ent : asmb.symtab()) {
+            maxLen = std::max(maxLen, ent.first.length());
+            symbols.push_back(Symbol{ ent.first, ent.second.value });
+        }
+
+        const int COLUMNS = 132; 
+        int perLine = COLUMNS / (maxLen + 8);
+        perLine = std::max(1, perLine);
+
+        out << endl << "Symbol table by name" << endl << endl;
+        writeSymbols(out, symbols, maxLen, perLine);
+
+        // now sort by value
+        std::sort(symbols.begin(), symbols.end(), [](const Symbol &left, const Symbol &right) {
+            return left.value < right.value;
+        });
+
+        out << endl << endl << "Symbol table by value" << endl << endl;
+        writeSymbols(out, symbols, maxLen, perLine);
+    }
+
+    void writeSymbols(ofstream &out, const std::vector<Symbol>& symbols, int maxLen, int perLine)
+    {
+        int col = 0;
+
+        out << std::uppercase;
+        for (const Symbol &sym : symbols) {
+            out 
+                << std::setfill(' ') << std::setw(maxLen) << sym.name
+                << " $"
+                << std::setfill('0') << std::hex << std::setw(4) << sym.value;
+
+            ++col;
+            if (col == perLine) {
+                out << endl;
+                col = 0;
+            } else {
+                out << "  ";
+            }
+        }
+
+        if (col) {
+            out << endl;
         }
     }
 }

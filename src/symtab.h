@@ -39,7 +39,7 @@ namespace yas6502
     {
     public:
         void clear();
-        Symbol lookup(const std::string &name);
+        Symbol lookup(const std::string &name) const;
         void setValue(const std::string &name, int value);
 
         using SymbolMap = std::map<std::string, Symbol>;

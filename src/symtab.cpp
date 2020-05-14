@@ -56,9 +56,13 @@ namespace yas6502
     /**
      * Look up a symbol. Always returns a value, which may not yet be defined.
      */
-    Symbol SymbolTable::lookup(const string& name)
+    Symbol SymbolTable::lookup(const string& name) const
     {
-        return symbols_[toUpper(name)];
+        auto it = symbols_.find(toUpper(name));
+        if (it == symbols_.end()) {
+            return Symbol{};
+        }
+        return it->second;
     }
     
     /**

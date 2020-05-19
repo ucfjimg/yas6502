@@ -102,6 +102,13 @@ rep        return yy::parser::make_REP(asmb.loc());
 "-"        return yy::parser::make_MINUS(asmb.loc());
 "*"        return yy::parser::make_TIMES(asmb.loc());
 "/"        return yy::parser::make_DIVIDE(asmb.loc());
+"<<"       return yy::parser::make_LSHIFT(asmb.loc());
+">>"       return yy::parser::make_RSHIFT(asmb.loc());
+"~"        return yy::parser::make_NEG(asmb.loc());
+"&"        return yy::parser::make_AND(asmb.loc());
+"^"        return yy::parser::make_XOR(asmb.loc());
+"|"        return yy::parser::make_OR(asmb.loc());
+"%"        return yy::parser::make_MOD(asmb.loc());
 "."        return yy::parser::make_DOT(asmb.loc());
 
 

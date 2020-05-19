@@ -278,7 +278,14 @@ namespace yas6502
                 case Operator::Sub: return "-";
                 case Operator::Mul: return "*";
                 case Operator::Div: return "/";
+                case Operator::Mod: return "%";
                 case Operator::Neg: return "-";
+                case Operator::BitNeg: return "~";
+                case Operator::LShift: return "<<";
+                case Operator::RShift: return ">>";
+                case Operator::And: return "&";
+                case Operator::Or: return "|";
+                case Operator::Xor: return "^";
                 }
 
                 return "?";

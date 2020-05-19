@@ -101,6 +101,13 @@ using ast::NoopNode;
   MINUS     "-"
   TIMES     "*"
   DIVIDE    "/"
+  MOD       "%"
+  LSHIFT    "<<"
+  RSHIFT    ">>"
+  NEG       "~"
+  AND       "&"
+  XOR       "^"
+  OR        "|"
   COMMA     ","
   DOT       "."
   ;
@@ -111,6 +118,7 @@ using ast::NoopNode;
 %token <int> NUMBER "number"
 
 %nterm <yas6502::ast::ExpressionPtr> expression
+%nterm <yas6502::ast::ExpressionPtr> uexpr
 %nterm <yas6502::ast::IndexReg> index
 %nterm <yas6502::ast::IndexReg> yindex
 %nterm <yas6502::ast::AddressPtr> addressing-mode
@@ -129,8 +137,13 @@ using ast::NoopNode;
 %nterm <std::string> label;
 %nterm <std::string> comment;
 
+%left "|"
+%left "^"
+%left "&"
+%left "<<" ">>"
 %left "+" "-"
-%left "*" "/"
+%left "*" "/" "%"
+%left "~"
 
 %%
 
@@ -213,15 +226,26 @@ yindex:
      %empty { $$ = ast::IndexReg::None; }
      | ",y" { $$ = ast::IndexReg::Y; }
 
-expression:
+
+uexpr:
     NUMBER                        { $$ = make_unique<ConstantExpression>( $1 ); }
     | IDENTIFIER                  { $$ = make_unique<SymbolExpression>( $1 ); }
     | "."                         { $$ = make_unique<LocationExpression>(); }
-    | "-" expression              { $$ = make_unique<UnaryOp>( Operator::Neg, std::move( $2 ) ); }
+    | "-" uexpr                   { $$ = make_unique<UnaryOp>( Operator::Neg, std::move( $2 ) ); }
+    | "~" uexpr                   { $$ = make_unique<UnaryOp>( Operator::BitNeg, std::move( $2 ) ); }
+
+expression:
+    uexpr                         { $$ = std::move( $1 ); }
     | expression "+" expression   { $$ = make_unique<BinaryOp>( Operator::Add, std::move( $1 ), std::move( $3 ) ); }
     | expression "-" expression   { $$ = make_unique<BinaryOp>( Operator::Sub, std::move( $1 ), std::move( $3 ) ); }
     | expression "*" expression   { $$ = make_unique<BinaryOp>( Operator::Mul, std::move( $1 ), std::move( $3 ) ); }
     | expression "/" expression   { $$ = make_unique<BinaryOp>( Operator::Div, std::move( $1 ), std::move( $3 ) ); }
+    | expression "%" expression   { $$ = make_unique<BinaryOp>( Operator::Mod, std::move( $1 ), std::move( $3 ) ); }
+    | expression "<<" expression  { $$ = make_unique<BinaryOp>( Operator::LShift, std::move( $1 ), std::move( $3 ) ); }
+    | expression ">>" expression  { $$ = make_unique<BinaryOp>( Operator::RShift, std::move( $1 ), std::move( $3 ) ); }
+    | expression "&" expression   { $$ = make_unique<BinaryOp>( Operator::And, std::move( $1 ), std::move( $3 ) ); }
+    | expression "|" expression   { $$ = make_unique<BinaryOp>( Operator::Or, std::move( $1 ), std::move( $3 ) ); }
+    | expression "^" expression   { $$ = make_unique<BinaryOp>( Operator::Xor, std::move( $1 ), std::move( $3 ) ); }
     | "(" expression ")"          { $$ = std::move( $2 ); $$->setParenthesized(); }
 
 %%

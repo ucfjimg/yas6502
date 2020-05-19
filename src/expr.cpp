@@ -97,6 +97,10 @@ namespace yas6502
         case Operator::Neg:
             op = ExprResult{ -op.value() };
             break;
+
+        case Operator::BitNeg:
+            op = ExprResult{ ~op.value() };
+            break;
         }
 
         return op;
@@ -141,6 +145,33 @@ namespace yas6502
                 throw Error{ "Divide by zero." };
             }
             left = ExprResult{ left.value() / right.value() };
+            break;
+
+        case Operator::Mod:
+            if (right.value() == 0) {
+                throw Error{ "Divide by zero." };
+            }
+            left = ExprResult{ left.value() % right.value() };
+            break;
+
+        case Operator::LShift:
+            left = ExprResult{ left.value() << right.value() };
+            break;
+
+        case Operator::RShift:
+            left = ExprResult{ left.value() >> right.value() };
+            break;
+
+        case Operator::And:
+            left = ExprResult{ left.value() & right.value() };
+            break;
+
+        case Operator::Or:
+            left = ExprResult{ left.value() | right.value() };
+            break;
+
+        case Operator::Xor:
+            left = ExprResult{ left.value() ^ right.value() };
             break;
         }
 

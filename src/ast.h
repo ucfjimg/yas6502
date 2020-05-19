@@ -228,7 +228,14 @@ namespace yas6502
             Sub,
             Mul,
             Div,
+            Mod,
             Neg,
+            LShift,
+            RShift,
+            And,
+            Or,
+            Xor,
+            BitNeg
         };
 
         class ExprResult

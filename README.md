@@ -35,7 +35,18 @@ WORDS:  WORD    $1234, $2345
         END
 ```
 
-Expressions can currently only use the four algebraic operators +, -, * and /.\, and parentheses.
+Expressions may use a subset of the C/C++ operators, with the same precedence as in C/C++. The following
+operators are supported:
+
+| Operator | Description                                 | Associativity |
+| -------- | ------------------------------------------- | ------------- |
+|   - ~    | Unary negatation, bitwise negation          | right to left |
+|  * / %   | Multiplication, division, modulus           | left to right |
+|   + -    | Addition, subtraction                       | left to right |
+|  << >>   | Left shift, right shift                     | left to right |
+|    &     | Bitwise and                                 | left to right |
+|    ^     | Bitwise exclusive or                        | left to right |
+|   \|     | Bitwise or                                  | left to right |
 
 ## Object files
 
@@ -71,9 +82,9 @@ undocumented, and 'S' means that it is also reported to be unstable on some proc
 There are a few features that I would consider essential for a production assembler that aren't there 
 yet. I hope to have time to add them in the near future. They are
 
-  - Robust expressions. At the very least logical operators; ideally as many of the operators in C as make sense.
   - A way to express ASCII strings without resorting to hex.
   - Ephemeral labels for short branches; e.g. a way to specify non-unique labels where references refer to the nearest instance.
+  - Conditional assembly.
   
 Nice to have but less essential would be multi-file assembly and a macro facility.
 

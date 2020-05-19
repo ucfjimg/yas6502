@@ -141,11 +141,31 @@ namespace yas6502
                 << (size_ == DataSize::Byte ? "BYTE " : "WORD ");
 
             for (unsigned i = 0; i < data_.size(); i++) {
-                line << data_[i]->str();
+                if (data_[i]->count != nullptr) {
+                    line 
+                        << "REP("
+                        << data_[i]->count->str()
+                        << ") "; 
+                }
+                line << data_[i]->value->str();
                 if (i < data_.size() - 1) {
                     line << ", ";
                 }
             }
+
+            return line.str();
+        }
+
+        /**
+         * Convert to string
+         */
+        string SpaceNode::toString()
+        {
+            ss line{};
+
+            line
+                << (size_ == DataSize::Byte ? "BYTES " : "WORDS ")
+                << count_->str();
 
             return line.str();
         }

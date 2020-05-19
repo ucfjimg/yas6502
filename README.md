@@ -72,7 +72,6 @@ There are a few features that I would consider essential for a production assemb
 yet. I hope to have time to add them in the near future. They are
 
   - Robust expressions. At the very least logical operators; ideally as many of the operators in C as make sense.
-  - A directive to reserve uninitialized space.
   - A way to express repetition in data definition; i.e. "256 zeros".
   - A way to express ASCII strings without resorting to hex.
   - Ephemeral labels for short branches; e.g. a way to specify non-unique labels where references refer to the nearest instance.

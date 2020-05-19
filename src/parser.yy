@@ -66,7 +66,9 @@ using ast::BinaryOp;
 using ast::UnaryOp;
 using ast::IndexReg;
 using ast::Address;
+using ast::DataElement;
 using ast::DataNode;
+using ast::SpaceNode;
 using ast::InstructionNode;
 using ast::OrgNode;
 using ast::SetNode;
@@ -84,6 +86,9 @@ using ast::NoopNode;
   ORG       "org"
   BYTE      "byte"
   WORD      "word"
+  BYTES     "bytes"
+  WORDS     "words"
+  REP       "rep"
   END       "end"
   XINDEX    ",x"
   YINDEX    ",y"
@@ -109,9 +114,12 @@ using ast::NoopNode;
 %nterm <yas6502::ast::IndexReg> index
 %nterm <yas6502::ast::IndexReg> yindex
 %nterm <yas6502::ast::AddressPtr> addressing-mode
-%nterm <std::vector<yas6502::ast::ExpressionPtr>> data-list;
+%nterm <std::vector<std::unique_ptr<yas6502::ast::DataElement>>> data-list;
+%nterm <std::unique_ptr<yas6502::ast::DataElement>> data-element;
 %nterm <yas6502::ast::DataSize> data-decl;
+%nterm <yas6502::ast::DataSize> space-decl;
 %nterm <std::unique_ptr<yas6502::ast::Node>> data-stmt;
+%nterm <std::unique_ptr<yas6502::ast::Node>> space-stmt;
 %nterm <std::unique_ptr<yas6502::ast::Node>> instr-stmt;
 %nterm <std::unique_ptr<yas6502::ast::Node>> org-stmt;
 %nterm <std::unique_ptr<yas6502::ast::Node>> set-stmt;
@@ -149,6 +157,7 @@ stmt:
     | org-stmt   { $$ = std::move( $1 ); }
     | end-stmt   { $$ = make_unique<NoopNode>(); } 
     | data-stmt  { $$ = std::move( $1 ); }
+    | space-stmt { $$ = std::move( $1 ); }
     | instr-stmt { $$ = std::move( $1 ); } 
     | %empty     { $$ = make_unique<NoopNode>(); }
 
@@ -171,12 +180,21 @@ data-decl:
     BYTE    { $$ = ast::DataSize::Byte; } 
     | WORD  { $$ = ast::DataSize::Word; }
 
+data-element: 
+    expression                          { $$ = make_unique<DataElement>(nullptr, std::move( $1 )); }
+    | REP "(" expression ")" expression { $$ = make_unique<DataElement>(std::move( $3 ), std::move( $5 )); }
+
 data-list: 
-    expression { $$.push_back( std::move( $1 ) ); }
-    | data-list "," expression { 
+    data-element { $$.push_back( std::move( $1 ) ); }
+    | data-list "," data-element { 
         $1.push_back(std::move( $3 ));
         $$ = std::move($1);
     }
+
+space-stmt: space-decl expression { $$ = make_unique<SpaceNode>( $1, std::move( $2 ) ); }
+space-decl:
+    BYTES   { $$ = ast::DataSize::Byte; }
+    | WORDS { $$ = ast::DataSize::Word; }
 
 addressing-mode:
     %empty                        { $$ = make_unique<Address>( ast::AddrMode::Implied, nullptr ); }

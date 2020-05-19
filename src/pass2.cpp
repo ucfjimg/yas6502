@@ -402,16 +402,36 @@ namespace yas6502
         {
             Node::pass2(pass2);
 
-            for (const auto &expr : data_) {
-                int value = pass2.evalCheckDefined(*expr);
+            for (const auto &ele : data_) {
+                int count =1;
 
-                pass2.emit(value & 0xFF);
-                if (size_ == DataSize::Byte) {
-                    pass2.checkByte(value);
-                } else {
-                    pass2.emit(value >> 8);
+                if (ele->count != nullptr) {
+                    count = pass2.evalCheckDefined(*ele->count);
+                }
+                int value = pass2.evalCheckDefined(*ele->value);
+
+                // NB pass 1 errors if count is not positive.
+                //
+                while (count--) {
+                    pass2.emit(value & 0xFF);
+                    if (size_ == DataSize::Byte) {
+                        pass2.checkByte(value);
+                    } else {
+                        pass2.emit(value >> 8);
+                    }
                 }
             } 
+        }
+
+        /**
+         * Pass 2 reserve space.
+         */
+        void SpaceNode::pass2(Pass2 &pass2)
+        {
+            int size = (size_ == DataSize::Byte) ? 1 : 2;
+            ExprResult er = count_->eval(pass2);
+            // expression defined is forced in pass 1
+            pass2.setLoc(pass2.loc() + size * er.value());
         }
     }
 }

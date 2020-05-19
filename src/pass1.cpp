@@ -235,8 +235,51 @@ namespace yas6502
             // counter.
             //
             int size = (size_ == DataSize::Byte) ? 1 : 2;
-            size *= data_.size();
+
+            int elements = 0;
+            for (const auto &de : data_) {
+                int count = 1;
+                if (de->count != nullptr) {
+                    ExprResult er = de->count->eval(pass1);
+                    if (!er.defined()) {
+                        ss err{};
+                        err 
+                            << "REP count expression must be fully defined in pass 1, but contains undefined symbols '"
+                            << concatSet(er.undefinedSymbols(), "', '")
+                            << "'.";
+                        pass1.pushMessage(Message{ false, line(), err.str() });
+                        continue;
+                    }
+                    if (er.value() < 1) {
+                        pass1.pushMessage(Message{ false, line(), "REP count expression must be positive." });
+                        continue;
+                    }
+                    count = er.value();
+                }
+                elements += count; 
+            }
+
+            size *= elements;
             pass1.setLoc(pass1.loc() + size);
+        }
+            
+        /**
+         * Reserve space.
+         */
+        void SpaceNode::pass1(Pass1 &pass1)
+        {
+            int size = (size_ == DataSize::Byte) ? 1 : 2;
+            ExprResult er = count_->eval(pass1);
+            if (!er.defined()) {
+               ss err{};
+               err
+                   << "SPACE expression must be fully defined in pass 1, but contains undefined symbols '"
+                   << concatSet(er.undefinedSymbols(), "', '")
+                   << "'.";
+                pass1.pushMessage(Message{ false, line(), err.str() });
+            }
+
+            pass1.setLoc(pass1.loc() + size * er.value());
         }
     }
 }

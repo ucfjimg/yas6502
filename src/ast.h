@@ -93,10 +93,18 @@ namespace yas6502
             Word,
         };
 
+        struct DataElement
+        {
+            ExpressionPtr count;
+            ExpressionPtr value;
+
+            DataElement(ExpressionPtr &&count, ExpressionPtr &&value);
+        };
+
         class DataNode : public Node
         {
         public:
-            DataNode(DataSize size, std::vector<ExpressionPtr> &&data);
+            DataNode(DataSize size, std::vector<std::unique_ptr<DataElement>> &&data);
 
             virtual void pass1(Pass1 &pass1) override;
             virtual void pass2(Pass2 &pass2) override;
@@ -104,7 +112,22 @@ namespace yas6502
 
         private:
             DataSize size_;
-            std::vector<ExpressionPtr> data_;
+            std::vector<std::unique_ptr<DataElement>> data_;
+        };
+
+        class SpaceNode : public Node
+        {
+        public:
+            SpaceNode(DataSize size, ExpressionPtr count);
+
+            virtual void pass1(Pass1 &pass1) override;
+            virtual void pass2(Pass2 &pass2) override;
+            virtual int length() const override;
+            virtual std::string toString() override;
+
+        private:
+            ExpressionPtr count_;
+            DataSize size_;
         };
 
         class InstructionNode : public Node
@@ -138,7 +161,7 @@ namespace yas6502
 
             virtual void pass1(Pass1 &pass1) override;
             virtual void pass2(Pass2 &pass2) override;
-            virtual int length() const;
+            virtual int length() const override;
             virtual std::string toString() override;
 
         private:
@@ -153,7 +176,7 @@ namespace yas6502
 
             virtual void pass1(Pass1 &pass1) override;
             virtual void pass2(Pass2 &pass2) override;
-            virtual int length() const;
+            virtual int length() const override;
             virtual std::string toString() override;
 
         private:

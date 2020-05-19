@@ -120,12 +120,38 @@ namespace yas6502
         }
 
         /**
+         * Construct a data element.
+         */
+        DataElement::DataElement(ExpressionPtr &&count, ExpressionPtr &&value)
+            : count(std::move(count))
+            , value(std::move(value))
+        {
+        }
+
+        /**
          * Construct an initialized data node
          */
-        DataNode::DataNode(DataSize size, vector<ExpressionPtr> &&data)
+        DataNode::DataNode(DataSize size, vector<unique_ptr<DataElement>>&&data)
             : size_(size)
             , data_(std::move(data))
         {
+        }
+
+        /**
+         * Construct an uninitialized data node
+         */
+        SpaceNode::SpaceNode(DataSize size, ExpressionPtr count)
+            : size_(size)
+            , count_(std::move(count))
+        {
+        }
+
+        /**
+         * Space nodes don't list any bytes since nothing is initialized.
+         */
+        int SpaceNode::length() const
+        {
+            return 0;
         }
 
         /**

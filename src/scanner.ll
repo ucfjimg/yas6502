@@ -42,6 +42,7 @@ using ss = std::stringstream;
 using symtype = yy::parser::symbol_type;
 using loctype = yy::parser::location_type;
 
+const int BIN = 2;
 const int DEC = 10;
 const int HEX = 16;
 
@@ -64,6 +65,7 @@ symtype make_IdOrOpcode(const std::string &s, const yas6502::Assembler &asmb);
 id       [a-z_][a-z_0-9]*
 int      [0-9]+
 hexint   [0-9a-f]+
+binint   [0-1]+
 blank    [ \r\t]
 
 %{
@@ -112,9 +114,11 @@ rep        return yy::parser::make_REP(asmb.loc());
 "."        return yy::parser::make_DOT(asmb.loc());
 
 
-\${hexint} return make_NUMBER(yytext+1, HEX, asmb.loc());
-{int}      return make_NUMBER(yytext, DEC, asmb.loc());
-{id}       return make_IdOrOpcode(yytext, asmb);
+\${hexint}  return make_NUMBER(yytext+1, HEX, asmb.loc());
+0x{hexint}  return make_NUMBER(yytext+2, HEX, asmb.loc());
+0b{binint}  return make_NUMBER(yytext+2, BIN, asmb.loc());
+{int}       return make_NUMBER(yytext, DEC, asmb.loc());
+{id}        return make_IdOrOpcode(yytext, asmb);
 
 ;.*$       return yy::parser::make_COMMENT(yytext, asmb.loc()); 
 

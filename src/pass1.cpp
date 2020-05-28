@@ -281,6 +281,19 @@ namespace yas6502
 
             pass1.setLoc(pass1.loc() + size * er.value());
         }
+
+        /**
+         * A string literal
+         */
+        void StringNode::pass1(Pass1 &pass1)
+        {
+            int size = str_.size();
+            if (nulTerminate_) {
+                size++;
+            }
+        
+            pass1.setLoc(pass1.loc() + size);
+        }
     }
 }
 

@@ -69,6 +69,7 @@ using ast::Address;
 using ast::DataElement;
 using ast::DataNode;
 using ast::SpaceNode;
+using ast::StringNode;
 using ast::InstructionNode;
 using ast::OrgNode;
 using ast::SetNode;
@@ -88,6 +89,8 @@ using ast::NoopNode;
   WORD      "word"
   BYTES     "bytes"
   WORDS     "words"
+  ASCII     "ascii"
+  ASCIIZ    "asciiz"
   REP       "rep"
   END       "end"
   XINDEX    ",x"
@@ -115,6 +118,7 @@ using ast::NoopNode;
 %token <std::string> OPCODE "opcode" 
 %token <std::string> COMMENT "comment"
 %token <std::string> IDENTIFIER "identifier"
+%token <std::string> STRING "string"
 %token <int> NUMBER "number"
 
 %nterm <yas6502::ast::ExpressionPtr> expression
@@ -128,6 +132,7 @@ using ast::NoopNode;
 %nterm <yas6502::ast::DataSize> space-decl;
 %nterm <std::unique_ptr<yas6502::ast::Node>> data-stmt;
 %nterm <std::unique_ptr<yas6502::ast::Node>> space-stmt;
+%nterm <std::unique_ptr<yas6502::ast::Node>> ascii-stmt;
 %nterm <std::unique_ptr<yas6502::ast::Node>> instr-stmt;
 %nterm <std::unique_ptr<yas6502::ast::Node>> org-stmt;
 %nterm <std::unique_ptr<yas6502::ast::Node>> set-stmt;
@@ -166,13 +171,14 @@ line: label stmt comment NEWLINE {
 }
 
 stmt: 
-    set-stmt     { $$ = std::move( $1 ); } 
-    | org-stmt   { $$ = std::move( $1 ); }
-    | end-stmt   { $$ = make_unique<NoopNode>(); } 
-    | data-stmt  { $$ = std::move( $1 ); }
-    | space-stmt { $$ = std::move( $1 ); }
-    | instr-stmt { $$ = std::move( $1 ); } 
-    | %empty     { $$ = make_unique<NoopNode>(); }
+    set-stmt      { $$ = std::move( $1 ); } 
+    | org-stmt    { $$ = std::move( $1 ); }
+    | end-stmt    { $$ = make_unique<NoopNode>(); } 
+    | data-stmt   { $$ = std::move( $1 ); }
+    | space-stmt  { $$ = std::move( $1 ); }
+    | instr-stmt  { $$ = std::move( $1 ); } 
+    | ascii-stmt  { $$ = std::move( $1 ); }
+    | %empty      { $$ = make_unique<NoopNode>(); }
 
 label: 
      %empty             {}
@@ -185,6 +191,12 @@ comment:
 set-stmt: SET IDENTIFIER "=" expression { $$ = make_unique<SetNode>( $2, std::move( $4 ) ); }
 org-stmt: ORG expression { $$ = make_unique<OrgNode>( std::move( $2 ) ); }
 instr-stmt: OPCODE addressing-mode { $$ = make_unique<InstructionNode>( $1, std::move( $2 ) ); }
+
+ascii-stmt: 
+    ASCII STRING { $$ = make_unique<StringNode>( $2, false ); }
+
+ascii-stmt: 
+    ASCIIZ STRING { $$ = make_unique<StringNode>( $2, true ); }
 
 end-stmt: END 
 

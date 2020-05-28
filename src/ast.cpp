@@ -154,6 +154,15 @@ namespace yas6502
             return 0;
         }
 
+        /** 
+         * Construct a string node
+         */
+        StringNode::StringNode(const string &str, bool nulTerminate)
+            : str_(str)
+            , nulTerminate_(nulTerminate)
+        {
+        }
+
         /**
          * Construct an instruction node
          */

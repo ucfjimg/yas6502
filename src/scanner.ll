@@ -58,6 +58,7 @@ namespace
 %option noyywrap nounput noinput batch debug caseless 
 
 %{
+symtype make_STRING(const char *s, const loctype &loc);
 symtype make_NUMBER(const std::string &s, int base, const loctype &loc);
 symtype make_IdOrOpcode(const std::string &s, const yas6502::Assembler &asmb);
 %}
@@ -87,6 +88,8 @@ byte       return yy::parser::make_BYTE(asmb.loc());
 word       return yy::parser::make_WORD(asmb.loc()); 
 bytes      return yy::parser::make_BYTES(asmb.loc()); 
 words      return yy::parser::make_WORDS(asmb.loc()); 
+ascii      return yy::parser::make_ASCII(asmb.loc()); 
+asciiz     return yy::parser::make_ASCIIZ(asmb.loc()); 
 rep        return yy::parser::make_REP(asmb.loc()); 
 "end"      return yy::parser::make_END(asmb.loc());
 "="        return yy::parser::make_EQUALS(asmb.loc());
@@ -113,6 +116,7 @@ rep        return yy::parser::make_REP(asmb.loc());
 "%"        return yy::parser::make_MOD(asmb.loc());
 "."        return yy::parser::make_DOT(asmb.loc());
 
+\"([^\\\"]|\\.)*\"    return make_STRING(yytext, asmb.loc());
 
 \${hexint}  return make_NUMBER(yytext+1, HEX, asmb.loc());
 0x{hexint}  return make_NUMBER(yytext+2, HEX, asmb.loc());
@@ -138,6 +142,40 @@ rep        return yy::parser::make_REP(asmb.loc());
 
 <<EOF>> return yy::parser::make_YYEOF(asmb.loc());
 %%
+
+symtype make_STRING(const char *s, const loctype &loc)
+{
+    s++;
+    const char *end = s + strlen(s) - 1;
+
+    std::string out;
+    bool esc = false;
+    for (; s < end; s++) {
+        if (!esc && *s == '\\') {
+            esc = true;
+            continue;
+        }
+
+        if (esc) {
+            esc = false;
+
+            switch (*s) {
+            case 'n':
+                out += '\n';
+                continue;
+
+            case 'r':
+                out += '\r';
+                continue;
+            }
+        }
+
+        esc = false;
+        out += *s;
+    }
+
+    return yy::parser::make_STRING(out, loc);
+}
 
 symtype make_NUMBER(const std::string &s, int base, const loctype &loc)
 {

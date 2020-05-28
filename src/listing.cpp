@@ -170,6 +170,41 @@ namespace yas6502
             return line.str();
         }
 
+        /*
+         * Convert string to string
+         */
+        string StringNode::toString()
+        {
+            ss line{};
+
+            line << (nulTerminate_ ? "ASCIIZ " : "ASCII  ");
+            
+            line << '"';
+            
+            for (char s : str_) {
+                switch (s) {
+                case '"':
+                    line << "\\\"";
+                    continue;
+
+                case '\n':
+                    line << "\\n";
+                    continue;
+
+                case '\r':
+                    line << "\\r";
+                    continue;
+                }
+
+                line << s;
+            }
+
+
+            line << '"';
+
+            return line.str();
+        }
+
         /**
          * Return the clock cycles description
          */

@@ -433,5 +433,19 @@ namespace yas6502
             // expression defined is forced in pass 1
             pass2.setLoc(pass2.loc() + size * er.value());
         }
+
+        /**
+         * Pass 2 string literal.
+         */
+        void StringNode::pass2(Pass2 &pass2)
+        {
+            for (char s : str_) {
+                pass2.emit(s);
+            }
+
+            if (nulTerminate_) {
+                pass2.emit('\0');
+            }
+        }
     }
 }

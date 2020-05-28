@@ -130,6 +130,20 @@ namespace yas6502
             DataSize size_;
         };
 
+        class StringNode : public Node
+        {
+        public:
+            StringNode(const std::string &str, bool nulTerminate);
+
+            virtual void pass1(Pass1 &pass1) override;
+            virtual void pass2(Pass2 &pass2) override;
+            virtual std::string toString() override;
+
+        private:
+            std::string str_;
+            bool nulTerminate_;
+        };
+
         class InstructionNode : public Node
         {
         public:

@@ -87,7 +87,7 @@ namespace yas6502
      */
     void Pass2::emit(unsigned byte)
     {
-        if (loc_ < 0 || loc_ >= 0xffff) {
+        if (loc_ < 0 || loc_ > 0xffff) {
             ss err{};
             err
                 << "Attempt to store data outside the addressing range of "

@@ -112,7 +112,10 @@ namespace yas6502
      */
     void Pass::setLoc(int loc)
     {
-        if (loc > 0xFFFF) {
+        // NB we have to allow the location counter to go one past the
+        // end of memory, as it's the position of the *next* byte to
+        // emit.
+        if (loc > 0xFFFF + 1) {
             throw Error{ "Location counter cannot exceed $FFFF." };
         } else if (loc < 0) {
             throw Error{ "Location counter cannot be negative." };

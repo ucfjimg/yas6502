@@ -65,6 +65,7 @@ namespace
     vector<char> readInputBuffer(const std::string &filename);
     void showErrors(Assembler &asmb);
     void writeObjectFile(const string &fn, const Image &image);
+    void writeBinaryFile(const string &fn, const Image &image);
     void writeListingFile(const string &fn, const Assembler &asmb);
     void writeProgramLines(ofstream &out, const Assembler &asmb);
     void writeErrors(ofstream &out, const Assembler &asmb);
@@ -77,9 +78,10 @@ int main(int argc, char *argv[])
     bool listing = false;
     string listingFile = "";
     string objectFile = "";
+    bool binaryImage = false;
     int ch;
 
-    while ((ch = getopt(argc, argv, "Ll:o:v")) != -1) {
+    while ((ch = getopt(argc, argv, "Ll:o:vb")) != -1) {
         switch (ch) {
         case 'L':
             listing = true;
@@ -104,6 +106,10 @@ int main(int argc, char *argv[])
                 << endl;
             return 0;
 
+        case 'b':
+            binaryImage = true;
+            break;
+
         default:
             usage();
         }      
@@ -119,7 +125,8 @@ int main(int argc, char *argv[])
     }
 
     if (objectFile.empty()) {
-        objectFile = yas6502::replaceOrAppendExtension(sourceFile, "o");
+        string ext = binaryImage ? "bin" : "o";
+        objectFile = yas6502::replaceOrAppendExtension(sourceFile, ext);
     }
 
     Assembler asmb{};
@@ -135,7 +142,11 @@ int main(int argc, char *argv[])
 
         unlink(objectFile.c_str());
         if (asmb.errors() == 0) {
-            writeObjectFile(objectFile, asmb.image());        
+            if (binaryImage) {
+                writeBinaryFile(objectFile, asmb.image());
+            } else {
+                writeObjectFile(objectFile, asmb.image());        
+            }
         }
         
         if (listing) {
@@ -259,6 +270,52 @@ namespace
             }
 
             last = addr;
+        }
+    }
+
+    /**
+     * Write a binary file.
+     */
+    void writeBinaryFile(const string &fn, const Image &image)
+    {
+        ofstream out{ fn };
+        if (!out) {
+            ss err{};
+            err
+                << "Could not open binary file `"
+                << fn
+                << "' for write.";
+            throw yas6502::Error{ err.str() };
+        }
+
+        int start = 0;
+        while (start < image.size() && image[start] == -1) {
+            start++;
+        }
+
+        int end = 0x10000;
+        while (end > 0 && image[end-1] == -1) {
+            end--;
+        }
+
+        if (start == end) {
+            return;
+        }
+
+        vector<uint8_t> bin{};
+
+        for (int i = start; i < end; i++) {
+            bin.push_back(static_cast<uint8_t>(image[i]));
+        }
+
+        out.write(reinterpret_cast<char*>(bin.data()), end-start);
+        if (!out) {
+            ss err{};
+            err
+                << "Error writing binary file `"
+                << fn
+                << "'.";
+            throw yas6502::Error{ err.str() };
         }
     }
 

@@ -60,6 +60,7 @@ namespace
 %{
 symtype make_STRING(const char *s, const loctype &loc);
 symtype make_NUMBER(const std::string &s, int base, const loctype &loc);
+symtype make_CHAR(char ch, bool esc, const loctype &loc);
 symtype make_IdOrOpcode(const std::string &s, const yas6502::Assembler &asmb);
 %}
 
@@ -115,6 +116,9 @@ rep        return yy::parser::make_REP(asmb.loc());
 "|"        return yy::parser::make_OR(asmb.loc());
 "%"        return yy::parser::make_MOD(asmb.loc());
 "."        return yy::parser::make_DOT(asmb.loc());
+
+'\\.'      return make_CHAR(yytext[2], true, asmb.loc());        
+'.'        return make_CHAR(yytext[1], false, asmb.loc());        
 
 \"([^\\\"]|\\.)*\"    return make_STRING(yytext, asmb.loc());
 
@@ -184,6 +188,23 @@ symtype make_NUMBER(const std::string &s, int base, const loctype &loc)
     //
     long n = strtol(s.c_str(), nullptr, base);
     return yy::parser::make_NUMBER((int)n, loc);
+}
+
+symtype make_CHAR(char ch, bool esc, const loctype &loc)
+{
+    if (esc) {
+        switch (ch) {
+        case 'n':
+            ch = '\n';
+            break;
+
+        case 'r':
+            ch = '\r';
+            break;
+        }
+    }
+
+    return yy::parser::make_NUMBER(ch, loc);
 }
 
 symtype make_IdOrOpcode(const std::string &s, const yas6502::Assembler &asmb)
